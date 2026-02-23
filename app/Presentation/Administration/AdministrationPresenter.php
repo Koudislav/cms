@@ -637,6 +637,8 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 					$form->addError('Neplatná barva u ' . $key);
 					continue;
 				}
+			} elseif (str_starts_with($key, 'template_')) {
+				$less = true;
 			}
 			$this->configurationRepository->updateValue(
 				$key,
@@ -648,6 +650,7 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 		$cache->remove('app_config');
 		if ($less) {
 			FileSystem::delete(self::TEMP_DIR . '/less/config.less');
+			FileSystem::delete(self::WWW_DIR . '/assets/css/styles.css');
 		}
 
 		$this->flashMessage('Nastavení bylo uloženo.', 'success');
