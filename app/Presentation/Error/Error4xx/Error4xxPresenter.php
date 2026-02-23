@@ -63,6 +63,7 @@ final class Error4xxPresenter extends Nette\Application\UI\Presenter {
 		$this->template->justifyMap = BasePresenter::JUSTIFY_MAP;
 		$this->template->navbarLayout = $this->getNavbarLayout();
 		$this->template->colorScheme = $this->getColorScheme();
+		$this->template->logoPath = $this->logoPath();
 	}
 
 	public function getNavbarLayout(): array {
