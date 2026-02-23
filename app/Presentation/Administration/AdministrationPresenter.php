@@ -131,8 +131,10 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 
 	public function beforeRender() {
 		$this->template->menu = $this->processMenu();
-		$this->checkConsistency();
 		$this->template->colorScheme = $this->getColorScheme();
+		if ($this->getUser()->isLoggedIn()) {
+			$this->checkConsistency();
+		}
 	}
 
 	public function actionUsers(int $userId = 0): void {

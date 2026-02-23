@@ -39,6 +39,8 @@ class BasePresenter extends Nette\Application\UI\Presenter {
 
 	public string $homeString = 'home';
 
+	protected const WWW_PATH = '/../../www';
+
 	public const MENU_CACHE_KEY = 'navbar_menu';
 
 	public const JUSTIFY_MAP = [
@@ -187,6 +189,7 @@ class BasePresenter extends Nette\Application\UI\Presenter {
 
 	public function basicVariables(): void {
 		$this->template->justifyMap = self::JUSTIFY_MAP;
+		$this->template->logoPath = $this->logoPath();
 		$this->template->navbarLayout = $this->getNavbarLayout();
 		$this->template->colorScheme = $this->getColorScheme();
 	}
@@ -211,6 +214,17 @@ class BasePresenter extends Nette\Application\UI\Presenter {
 			}
 		}
 		return $scheme;
+	}
+
+	public function logoPath(): bool|string {
+		$logoPath = $this->config['logo_path'];
+		if (!empty($logoPath) && str_starts_with($logoPath, '/')) {
+			$basePath = __DIR__ . self::WWW_PATH;
+			if (!realpath($basePath . $logoPath)) {
+				return false;
+			}
+		}
+		return $logoPath;
 	}
 
 }

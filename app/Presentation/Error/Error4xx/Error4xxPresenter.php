@@ -35,6 +35,8 @@ final class Error4xxPresenter extends Nette\Application\UI\Presenter {
 	/** @var ArticleAssetControlFactory @inject */
 	public ArticleAssetControlFactory $articleAssetControlFactory;
 
+	protected const WWW_PATH = '/../../../../www';
+
 	public function renderDefault(Nette\Application\BadRequestException $exception): void {
 		// renders the appropriate error template based on the HTTP status code
 		$cssFile = $this->lessCompiler->getCss('styles.less', true);
@@ -83,6 +85,17 @@ final class Error4xxPresenter extends Nette\Application\UI\Presenter {
 			}
 		}
 		return $scheme;
+	}
+
+	public function logoPath(): bool|string {
+		$logoPath = $this->config['logo_path'];
+		if (!empty($logoPath) && str_starts_with($logoPath, '/')) {
+			$basePath = __DIR__ . self::WWW_PATH;
+			if (!realpath($basePath . $logoPath)) {
+				return false;
+			}
+		}
+		return $logoPath;
 	}
 
 }
