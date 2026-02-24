@@ -15,6 +15,9 @@ class Config implements \ArrayAccess {
 
 	public const SPECIAL_ENUMS = [
 		'bgColor',
+		'spacing',
+		'padding',
+		'margin',
 	];
 
 	public function __construct(
@@ -100,6 +103,9 @@ class Config implements \ArrayAccess {
 	public function resolveSpecials(string $type): array {
 		return match ($type) {
 			'bgColor' => array_keys(BootstrapHelper::BOOTSTRAP_BG_COLOR_ENUM),
+			'spacing' => array_keys(BootstrapHelper::getSpacingOptions()),
+			'padding' => array_keys(BootstrapHelper::getSpacingOptions('padding')),
+			'margin' => array_keys(BootstrapHelper::getSpacingOptions('margin')),
 			default => [],
 		};
 	}

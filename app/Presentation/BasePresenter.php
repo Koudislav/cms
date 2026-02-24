@@ -192,6 +192,7 @@ class BasePresenter extends Nette\Application\UI\Presenter {
 		$this->template->logoPath = $this->logoPath();
 		$this->template->navbarLayout = $this->getNavbarLayout();
 		$this->template->colorScheme = $this->getColorScheme();
+		$this->template->templateSpacing = $this->getTemplateSpacing();
 	}
 
 	public function getNavbarLayout(): array {
@@ -206,6 +207,16 @@ class BasePresenter extends Nette\Application\UI\Presenter {
 		];
 	}
 
+	public function getTemplateSpacing(): array {
+		$templateSpacing = ['template_p_content'];
+		foreach ($templateSpacing as $configKey) {
+			if (!empty($this->config[$configKey])) {
+				$spacing[str_replace('template_', '', $configKey)] = $this->config[$configKey];
+			}
+		}
+		return $spacing ?? [];
+	}
+
 	public function getColorScheme(): array {
 		$templateBg = ['template_bg_content', 'template_bg_navbar', 'template_bg_page', 'template_color_scheme'];
 		foreach ($templateBg as $bg) {
@@ -213,7 +224,7 @@ class BasePresenter extends Nette\Application\UI\Presenter {
 				$scheme[str_replace('template_', '', $bg)] = $this->config[$bg];
 			}
 		}
-		return $scheme;
+		return $scheme ?? [];
 	}
 
 	public function logoPath(): bool|string {

@@ -62,6 +62,36 @@ class BootstrapHelper {
 		'black' => 'Černá',
 	];
 
+	public const BOOTSTRAP_SPACING_SIZES = [
+		'0' => '0',
+		'1' => '1',
+		'2' => '2',
+		'3' => '3',
+		'4' => '4',
+		'5' => '5',
+		'auto' => 'Auto',
+	];
+	
+	public const BOOTSTRAP_SPACING_SIDES = [
+		'' => 'Všechny strany',
+		't' => 'Nahoře',
+		'b' => 'Dole',
+		's' => 'Start',
+		'e' => 'End',
+		'x' => 'Horizontálně',
+		'y' => 'Vertikálně',
+	];
+	
+	public const BOOTSTRAP_SPACING_TYPES = [
+		'p' => 'Padding',
+		'm' => 'Margin',
+	];
+
+	private const SPACING_TYPE_MAP = [
+		'padding' => 'p',
+		'margin' => 'm',
+	];
+
 	public static function getBootstrapPositionEnum(): array {
 		return self::BOOTSTRAP_POSITION_ENUM;
 	}
@@ -105,6 +135,56 @@ class BootstrapHelper {
 			->class('badge ' . $prefix . $color)
 			->setText($text ?: $color);
 		return $label;
+	}
+
+	public static function buildSpacingClass(?string $value): ?string {
+		if (!$value) {
+			return null;
+		}
+		// validace bootstrap spacing
+		if (!preg_match('~^(p|m)([tbsexy]?)-(0|1|2|3|4|5|auto)$~', $value)) {
+			return null;
+		}
+
+		return $value;
+	}
+
+	/**
+	 * Generuje všechny možné kombinace spacing tříd pro Bootstrap 5.
+	 * @param ?string $type Pokud je zadán konkrétní typ (padding/margin), generuje pouze pro tento typ.
+	 */
+	public static function getSpacingOptions(?string $type = null): array {
+		$options = [];
+		// filtr typů
+		$allowedTypes = self::BOOTSTRAP_SPACING_TYPES;
+
+		if ($type !== null) {
+			if (!isset(self::SPACING_TYPE_MAP[$type])) {
+				throw new \InvalidArgumentException("Neznámý spacing type: $type");
+			}
+			$bsType = self::SPACING_TYPE_MAP[$type];
+
+			$allowedTypes = [
+				$bsType => self::BOOTSTRAP_SPACING_TYPES[$bsType],
+			];
+		}
+		foreach ($allowedTypes as $typeKey => $typeLabel) {
+			foreach (self::BOOTSTRAP_SPACING_SIDES as $sideKey => $sideLabel) {
+				foreach (self::BOOTSTRAP_SPACING_SIZES as $sizeKey => $sizeLabel) {
+					// auto jen pro margin
+					if ($sizeKey === 'auto' && $typeKey !== 'm') {
+						continue;
+					}
+					$class = $typeKey . $sideKey . '-' . $sizeKey;
+	
+					$options[$class] =
+						$typeLabel . ' • ' .
+						$sideLabel . ' • ' .
+						$sizeLabel;
+				}
+			}
+		}
+		return $options;
 	}
 
 }

@@ -1,5 +1,8 @@
 {block content}
-<div n:class="$config['template_container_fluid'] ? container-fluid : container, content-container, !empty($colorScheme['bg_content']) ? 'bg-' . $colorScheme['bg_content'] : ''">
+<div n:class="$config['template_container_fluid'] ? container-fluid : container,
+		!empty($colorScheme['bg_content']) ? 'bg-' . $colorScheme['bg_content'] : '',
+		!empty($templateSpacing['p_content']) ? $templateSpacing['p_content'] : '',
+		content-container">
 	{snippetArea calendarArea}
 		{control calendar}
 	{/snippetArea}

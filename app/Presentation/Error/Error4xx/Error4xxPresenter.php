@@ -64,6 +64,7 @@ final class Error4xxPresenter extends Nette\Application\UI\Presenter {
 		$this->template->navbarLayout = $this->getNavbarLayout();
 		$this->template->colorScheme = $this->getColorScheme();
 		$this->template->logoPath = $this->logoPath();
+		$this->template->templateSpacing = $this->getTemplateSpacing();
 	}
 
 	public function getNavbarLayout(): array {
@@ -76,6 +77,16 @@ final class Error4xxPresenter extends Nette\Application\UI\Presenter {
 			'ulClass' => $isWide ? $justifyClass . ' w-100' : null,
 			'position' => $pos,
 		];
+	}
+
+	public function getTemplateSpacing(): array {
+		$templateSpacing = ['template_p_content'];
+		foreach ($templateSpacing as $configKey) {
+			if (!empty($this->config[$configKey])) {
+				$spacing[str_replace('template_', '', $configKey)] = $this->config[$configKey];
+			}
+		}
+		return $spacing ?? [];
 	}
 
 	public function getColorScheme(): array {

@@ -60,6 +60,7 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 		'template_bg_page' => 'enumColors',
 		'template_bg_navbar' => 'enumColors',
 		'template_bg_content' => 'enumColors',
+		'template_p_content' => 'enumPadding',
 	];
 
 	public const MENU = [
@@ -124,8 +125,11 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 		'parent' => 'Nadřazená položka (bez odkazu)',
 	];
 
+	public Cache $cache;
+
 	public function startUp() {
 		parent::startUp();
+		$this->cache = new Cache($this->cacheStorage);
 		FileSystem::createDir(self::UPLOAD_DIR);
 	}
 
@@ -646,8 +650,8 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 				$this->user->getId()
 			);
 		}
-		$cache = new Cache($this->cacheStorage);
-		$cache->remove('app_config');
+
+		$this->cache->remove('app_config');
 		if ($less) {
 			FileSystem::delete(self::TEMP_DIR . '/less/config.less');
 			FileSystem::delete(self::WWW_DIR . '/assets/css/styles.css');
@@ -705,7 +709,6 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 
 	public function articleFormSubmitted(Form $form, $values): void {
 		$articleId = (int) $this->getParameter('articleId');
-		$cache = new Cache($this->cacheStorage);
 
 		if ($articleId !== 0) {
 			//edit
@@ -715,8 +718,8 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 			} else {
 				$this->flashMessage('Článek byl úspěšně upraven.', 'success');
 			}
-			$cache->remove(ArticleRepository::ALL_ARTICLE_SLUGS_CACHE_KEY);
-			$cache->clean([Cache::Tags => ['articleAssets']]);
+			$this->cache->remove(ArticleRepository::ALL_ARTICLE_SLUGS_CACHE_KEY);
+			$this->cache->clean([Cache::Tags => ['articleAssets']]);
 			$this->redirect('this');
 		} else {
 			//novy
@@ -726,7 +729,7 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 					$this->flashMessage($msg, $type);
 				}
 			}
-			$cache->remove(ArticleRepository::ALL_ARTICLE_SLUGS_CACHE_KEY);
+			$this->cache->remove(ArticleRepository::ALL_ARTICLE_SLUGS_CACHE_KEY);
 			$this->redirect('Administration:articles', ['articleId' => $create['articleId']]);
 		}
 	}
@@ -739,11 +742,13 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 		if ($menuKey !== '0' && $newMenu !== '1') {
 			//edit
 			$this->menuRepository->updateMenuItem($values, $menuId);
+			$this->cache->clean([Cache::Tags => self::MENU_CACHE_KEY]);
 			$this->flashMessage('Položka menu byla úspěšně upravena.', 'success');
 			$this->redirect('this');
 		} else {
 			//novy
 			$menuId = $this->menuRepository->createMenuItem($values);
+			$this->cache->clean([Cache::Tags => self::MENU_CACHE_KEY]);
 			$this->flashMessage('Položka menu byla úspěšně vytvořena.', 'success');
 			$this->redirect('Administration:menus', ['menuKey' => $values->menu_key, 'menuId' => $menuId]);
 		}
@@ -1034,6 +1039,7 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 		}
 
 		$this->menuRepository->updatePositions($data['order']);
+		$this->cache->clean([Cache::Tags => self::MENU_CACHE_KEY]);
 
 		$this->sendJson(['status' => 'ok']);
 	}
@@ -1089,6 +1095,18 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 
 	public function enumColors($item) {
 		return BootstrapHelper::getEnum($item->enum_options) ?? [];
+	}
+
+	public function enumSpacing() {
+		return BootstrapHelper::getSpacingOptions() ?? [];
+	}
+
+	public function enumPadding() {
+		return BootstrapHelper::getSpacingOptions('padding') ?? [];
+	}
+
+	public function enumMargin() {
+		return BootstrapHelper::getSpacingOptions('margin') ?? [];
 	}
 
 }
