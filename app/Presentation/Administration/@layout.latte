@@ -119,14 +119,14 @@
 				text: 'Načíst šablonu',
 				fetch: function(callback) {
 					// Načteme seznam šablon přes Naja
-					naja.makeRequest('POST', '/administration/default?do=loadTemplates', { }, { history: false })
+					naja.makeRequest('POST', '?do=loadTemplates', { }, { history: false })
 						.then(templates => {
 							const items = templates.map(t => ({
 								type: 'menuitem',
 								text: t.name,
 								onAction: function() {
 									// po kliknutí načteme obsah šablony
-									naja.makeRequest('POST', '/administration/default?do=loadTemplate', { templateId: t.id }, { history: false })
+									naja.makeRequest('POST', '?do=loadTemplate', { templateId: t.id }, { history: false })
 										.then(data => {
 											if (data && data.content) {
 												editor.setContent(data.content);

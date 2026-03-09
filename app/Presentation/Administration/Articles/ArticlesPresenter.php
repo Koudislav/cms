@@ -1,0 +1,130 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Presentation\Administration\Articles;
+
+use App\Forms\BootstrapFormFactory;
+use Nette\Caching\Cache;
+use Nette\Caching\Storage;
+use Nette\Forms\Form;
+
+final class ArticlesPresenter extends \App\Presentation\Administration\BaseAdministrationPresenter {
+
+	/** @var Storage @inject */
+	public Storage $cacheStorage;
+
+	public Cache $cache;
+
+	public const ARTICLE_TYPES = [
+		'article' => 'Běžný článek',
+		'news' => 'Novinka',
+		'index' => 'Úvodní stránka',
+	];
+
+	public function startup() {
+		parent::startup();
+		$this->cache = new Cache($this->cacheStorage);
+	}
+
+	public function renderDefault(int $articleId = 0): void {
+		$this->template->currentArticleId = $articleId;
+		$data = $this->articleRepository->findAll();
+
+		$indexes = [];
+		$articles = [];
+
+		foreach ($data as $key => $article) {
+			if ($article->type === 'index') {
+				$indexes[$key] = $article;
+			} else {
+				$articles[$key] = $article;
+			}
+		}
+		$this->template->articleName = $data[$articleId]->title ?? null;
+		$this->template->menus = $indexes + $articles;
+	}
+
+	public function createComponentArticleForm() {
+		$form = BootstrapFormFactory::create('oneLine');
+		$articleId = (int) $this->getParameter('articleId');
+
+		$form->addSelect('type', 'Typ článku:', self::ARTICLE_TYPES)
+			->setDefaultValue('article');
+
+		$form->addText('title', 'Nadpis:')
+			->setRequired('Zadejte nadpis článku.');
+
+		$form->addCheckbox('show_title', 'Nadpis ve stránce')
+			->setDefaultValue(false);
+
+		$form->addText('slug', 'Slug (jenom malá písmena, čísla, pomlčky):')
+			->addRule($form::Pattern, 'Zadejte platný slug (malá písmena, čísla, pomlčky).', '^[a-z0-9\-]+$');
+
+		$form->addText('seo_title', 'SEO titulek:')
+			->setHtmlAttribute('placeholder', 'Ponechte prázdné pro použití nadpisu jako SEO titulku.');
+		
+		$form->addText('seo_description', 'SEO popis:')
+			->setHtmlAttribute('placeholder', 'Ponechte prázdné pro použití SEO description ze sekce NASTAVENÍ.');
+
+		$form->addText('og_image', 'og image:')
+			->setHtmlAttribute('placeholder', 'obrázek pro sociální sítě (relativní cesta od kořene webu, např. /upload/obrazek.jpg)');
+
+		$form->addTextArea('content', 'Obsah:')
+			->setHtmlAttribute('rows', 10)
+			->setHtmlAttribute('class', 'tiny-editor');
+
+		$form->addCheckbox('is_published', 'Publikováno')
+			->setDefaultValue(false);
+
+		$form->addSubmit('submit', 'Uložit')
+			->setHtmlAttribute('class', 'btn btn-primary');
+
+		if ($articleId !== 0) {
+			$articleData = $this->articleRepository->getArticleById($articleId);
+			$form->setDefaults([
+				'type' => $articleData->type,
+				'title' => $articleData->title,
+				'content' => $articleData->content,
+				'slug' => $articleData->slug,
+				'show_title' => $articleData->show_title == 1,
+				'is_published' => $articleData->is_published == 1,
+				'seo_title' => $articleData->seo_title,
+				'seo_description' => $articleData->seo_description,
+				'og_image' => $articleData->og_image,
+			]);
+		}
+
+		$form->onSuccess[] = [$this, 'articleFormSubmitted'];
+
+		return $form;
+	}
+
+	public function articleFormSubmitted(Form $form, $values): void {
+		$articleId = (int) $this->getParameter('articleId');
+
+		if ($articleId !== 0) {
+			//edit
+			$update = $this->articleRepository->updateArticle($articleId, $values, $this->getUser()->getId());
+			if (!$update) {
+				$this->flashMessage('Nebyly provedeny žádné změny.', 'danger');
+			} else {
+				$this->flashMessage('Článek byl úspěšně upraven.', 'success');
+			}
+			$this->cache->remove($this->articleRepository::ALL_ARTICLE_SLUGS_CACHE_KEY);
+			$this->cache->clean([$this->cache::Tags => ['articleAssets']]);
+			$this->redirect('this');
+		} else {
+			//novy
+			$create = $this->articleRepository->createArticle($values, $this->user->getId());
+			foreach ($create['messages'] as $message) {
+				foreach ($message as $type => $msg) {
+					$this->flashMessage($msg, $type);
+				}
+			}
+			$this->cache->remove($this->articleRepository::ALL_ARTICLE_SLUGS_CACHE_KEY);
+			$this->redirect('this', ['articleId' => $create['articleId']]);
+		}
+	}
+
+}

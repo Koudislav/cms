@@ -1,12 +1,12 @@
 {block blockMenu}
 <div class="list-group rounded shadow-sm">
-	<a n:href="Administration:articles, articleId: 0"
+	<a n:href="default, articleId: 0"
 			n:class="$currentArticleId === 0 ? active, 'list-group-item list-group-item-action'">
 		<i class="bi bi-file-earmark-plus"></i> Nový článek
 	</a>
 
 	{foreach $menus as $menuItem}
-		<a n:href="Administration:articles, articleId: $menuItem->id"
+		<a n:href="default, articleId: $menuItem->id"
 				n:class="$currentArticleId === $menuItem->id ? active, 'list-group-item list-group-item-action'">
 			
 			<i n:class="bi, $menuItem->is_published ? 'bi-eye text-success' : 'bi-eye-slash text-danger'"></i>
