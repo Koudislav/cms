@@ -22,6 +22,13 @@ final class DefaultConfiguration {
 			'sort_order' => 100,
 			'default' => '',
 		],
+		'aplication_size' => [
+			'category' => 'basic',
+			'type' => 'string',
+			'description' => 'Maximalni velikost dat pro nahrani - upload souborů, galerie atd. Dle fakturace.',
+			'sort_order' => 150,
+			'default' => '500M',
+		],
 
 		//LICENCE
 		'licence' => [

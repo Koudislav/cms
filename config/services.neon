@@ -12,6 +12,7 @@ services:
 	- App\Service\ImageService(%wwwDir%)
 	- App\Service\SitemapGenerator(%wwwDir%)
 	- App\Service\ReCaptchaService(%recaptcha.threshold%)
+	- App\Service\DiskQuotaService(@cacheStorage, @config, %wwwDir%)
 
 	- App\Components\ContactFormControlFactory
 	- App\Components\ArticleAsset\ArticleAssetControlFactory

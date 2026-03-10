@@ -139,12 +139,14 @@ class ArticleRepository {
 		return $result;
 	}
 
-	public function getIndexes() {
-		return $this->db->table(self::ARTICLES_TABLE)
-			->where('is_published', 1)
+	public function getIndexes(bool $onlyPublished = true) {
+		$query = $this->db->table(self::ARTICLES_TABLE)
 			->where('type', 'index')
-			->order('created_at DESC')
-			->fetchAll();
+			->order('created_at DESC');
+		if ($onlyPublished) {
+			$query->where('is_published', 1);
+		}
+		return $query->fetchAll();
 	}
 
 }
