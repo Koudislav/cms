@@ -1,7 +1,7 @@
 {block blockMenu}
 <div class="list-group rounded shadow-sm">
 	{foreach $categories as $key => $label}
-		<a n:href="Administration:configuration category: $key"
+		<a n:href="this, category: $key"
 				n:class="$currentCategory === $key ? active, 'list-group-item list-group-item-action'">
 			{$label}
 		</a>

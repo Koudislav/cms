@@ -47,7 +47,7 @@
 
 {if $relativePath !== '/upload'}
 	<div style="margin-bottom: 15px;">
-		<a class="btn btn-secondary" n:href="Administration:uploadManager folder: $parentDir">⬅ Zpět</a>
+		<a class="btn btn-secondary" n:href="this, folder: $parentDir">⬅ Zpět</a>
 	</div>
 {/if}
 
@@ -55,12 +55,12 @@
 <div style="margin-bottom: 20px;">
 	<strong>Cesta:</strong>
 	{var $crumbs = explode('/', trim($relativePath, '/'))}
-	<a n:href="Administration:uploadManager folder: null">Upload</a>
+	<a n:href="this, folder: null">Upload</a>
 	{var $pathAcc = ''}
 	{foreach $crumbs as $key => $crumb}
 		{continueIf $key === 0}
 		{php $pathAcc .= '/' . $crumb}
-		&nbsp;/&nbsp;<a n:href="Administration:uploadManager folder: $pathAcc">{$crumb}</a>
+		&nbsp;/&nbsp;<a n:href="this, folder: $pathAcc">{$crumb}</a>
 	{/foreach}
 </div>
 
@@ -78,7 +78,7 @@
 
 	{* Složky *}
 	{foreach $dirs as $dir}
-		<a n:href="Administration:uploadManager folder: $dir['relativePath']">
+		<a n:href="this, folder: $dir['relativePath']">
 			<div class="file-card bg-body-secondary">
 				<div class="file-icon">
 					<i class="bi bi-folder-fill text-warning"></i>

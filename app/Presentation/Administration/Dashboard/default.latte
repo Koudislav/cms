@@ -1,0 +1,16 @@
+{block blockMenu}
+<div class="list-group rounded shadow-sm">
+	{foreach $menu as $m}
+		<a href="{$m['link']}" class="list-group-item list-group-item-action">
+			<i class="{$m['icon']}"></i> {$m['title']}
+		</a>
+	{/foreach}
+</div>
+{/block}
+{block content}
+<h1 n:block=title>{$dashboardHeader}</h1>
+{if !$user->isLoggedIn()}
+	{include '_loginForm.latte'}
+{else}
+	Jste přihlášen jako <b>{$user->getIdentity()->email}</b>.
+{/if}
