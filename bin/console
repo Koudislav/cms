@@ -1,0 +1,22 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+date_default_timezone_set('Europe/Prague');
+setlocale(LC_ALL, 'cs_CZ.UTF-8', 'cs_CZ.utf8', 'cs_CZ', 'czech', 'cs', 'Czech_Czech Republic.1250');
+
+require __DIR__ . '/../vendor/autoload.php';
+
+use App\Bootstrap;
+
+// Vytvoření instance bootstrapu
+$bootstrap = new Bootstrap();
+
+// Zavolání nové metody boot() pro zprovoznění DI kontejneru
+$container = $bootstrap->boot();
+
+// Získání konzolové aplikace a spuštění
+$application = $container->getByType(Symfony\Component\Console\Application::class);
+
+exit($application->run());

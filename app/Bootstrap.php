@@ -23,6 +23,13 @@ class Bootstrap {
 		return $this->configurator->createContainer();
 	}
 
+	//Pro CLI, radeji oddelime od WebApplication()
+	public function boot(): Nette\DI\Container {
+		$this->setupContainer();
+		$this->initializeEnvironment();
+		return $this->configurator->createContainer();
+	}
+
 	public function initializeEnvironment(): void {
 		//$this->configurator->setDebugMode('secret@23.75.345.200'); // enable for your remote IP
 		$this->configurator->enableTracy($this->rootDir . '/log');

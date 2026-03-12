@@ -10,18 +10,10 @@ application:
 		5xx: Error:Error5xx
 	mapping: App\Presentation\*\**Presenter
 
-
-database:
-	dsn: 'sqlite::memory:'
-	user:
-	password:
-
-
 latte:
 	strictParsing: yes
 	extensions:
 		- App\Presentation\Accessory\LatteExtension
-
 
 assets:
 	mapping:
@@ -29,8 +21,17 @@ assets:
 			path: assets
 			# type: vite  # Uncomment to activate Vite for asset building
 
-
 di:
 	export:
 		parameters: no
 		tags: no
+
+extensions:
+	console: Contributte\Console\DI\ConsoleExtension(%consoleMode%)
+	migrations: Nextras\Migrations\Bridges\NetteDI\MigrationsExtension
+
+migrations:
+	dir: %appDir%/../migrations
+	driver: mysql
+	dbal: nette
+	withDummyData: false # %debugMode%
