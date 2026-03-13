@@ -21,13 +21,15 @@ class MenuRepository {
 	) {}
 
 	public function findKeys(): array {
-		return $this->db->table('menus')
+		return $this->db->table(self::MENUS_TABLE)
+			->where('deleted_at', null)
 			->select('DISTINCT menu_key')
 			->fetchPairs('menu_key', 'menu_key');
 	}
 
 	public function findByKeyStructured(string $menuKey, bool $active = false): array {
-		$query = $this->db->table('menus')
+		$query = $this->db->table(self::MENUS_TABLE)
+			->where('deleted_at', null)
 			->where('menu_key', $menuKey)
 			->order('position');
 
@@ -168,12 +170,14 @@ class MenuRepository {
 
 	private function getNextPosition(string $menuKey): int {
 		return (int) $this->db->table(self::MENUS_TABLE)
+			->where('deleted_at', null)
 			->where('menu_key', $menuKey)
 			->max('position') + 1;
 	}
 
 	public function getRootItemsForSelect(string $menuKey, ?int $excludeId = null): array {
-		$q = $this->db->table('menus')
+		$q = $this->db->table(self::MENUS_TABLE)
+			->where('deleted_at', null)
 			->where('menu_key', $menuKey)
 			->where('parent_id IS NULL')
 			->where('presenter', null);
@@ -182,6 +186,27 @@ class MenuRepository {
 			$q->where('id != ?', $excludeId);
 		}
 		return $q->fetchPairs('id', 'label');
+	}
+
+	public function softDelete(int $id, int $userId): void {
+		$this->db->beginTransaction();
+		$ids = [$id];
+
+		$children = $this->db->table(self::MENUS_TABLE)
+			->where('parent_id', $id)
+			->fetchAll();
+
+		foreach ($children as $child) {
+			$ids[] = $child->id;
+		}
+
+		$this->db->table(self::MENUS_TABLE)
+			->where('id', $ids)
+			->update([
+				'deleted_at' => new \DateTime(),
+				'deleted_by' => $userId,
+			]);
+		$this->db->commit();
 	}
 
 }

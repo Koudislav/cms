@@ -23,4 +23,4 @@
 		Správa článků - {if $currentArticleId === 0}Nový článek{else}Úprava článku {$articleName}{/if}
 	</h1>
 	<hr>
-	{control articleForm}
+	{include '_articleForm.latte'}

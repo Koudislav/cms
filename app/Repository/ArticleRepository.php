@@ -24,11 +24,14 @@ class ArticleRepository {
 	) {}
 
 	public function findAll() {
-		return $this->db->table(self::ARTICLES_TABLE)->order('title ASC');
+		return $this->db->table(self::ARTICLES_TABLE)
+			->where('deleted_at', null)
+			->order('title ASC');
 	}
 
 	public function getArticleById(int $articleId): ?ActiveRow {
 		return $this->db->table(self::ARTICLES_TABLE)
+			->where('deleted_at', null)
 			->get($articleId) ?: null;
 	}
 
@@ -111,6 +114,7 @@ class ArticleRepository {
 
 	public function getBySlug(string $slug): ?ActiveRow {
 		return $this->db->table(self::ARTICLES_TABLE)
+			->where('deleted_at', null)
 			->where('slug', $slug)
 			->fetch() ?: null;
 	}
@@ -130,6 +134,7 @@ class ArticleRepository {
 
 	public function getArticleListForSelect(): array {
 		$articles = $this->db->table(self::ARTICLES_TABLE)
+			->where('deleted_at', null)
 			->order('title ASC')
 			->fetchAll();
 		$result = [];
@@ -141,12 +146,25 @@ class ArticleRepository {
 
 	public function getIndexes(bool $onlyPublished = true) {
 		$query = $this->db->table(self::ARTICLES_TABLE)
+			->where('deleted_at', null)
 			->where('type', 'index')
 			->order('created_at DESC');
 		if ($onlyPublished) {
 			$query->where('is_published', 1);
 		}
 		return $query->fetchAll();
+	}
+
+	public function deleteArticle(int $articleId, int $userId): bool {
+		$article = $this->getArticleById($articleId);
+		if (!$article) {
+			return false;
+		}
+		return $article->update([
+			'deleted_at' => new \DateTime(),
+			'deleted_by' => $userId,
+			'slug' => $this->generateAvailableSlug('deleted-article-' . $article->slug),
+		]);
 	}
 
 }

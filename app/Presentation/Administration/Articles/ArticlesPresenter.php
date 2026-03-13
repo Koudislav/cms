@@ -70,7 +70,7 @@ final class ArticlesPresenter extends \App\Presentation\Administration\BaseAdmin
 		$form->addText('og_image', 'og image:')
 			->setHtmlAttribute('placeholder', 'obrázek pro sociální sítě (relativní cesta od kořene webu, např. /upload/obrazek.jpg)');
 
-		$form->addTextArea('content', 'Obsah:')
+		$form->addTextArea('content', 'Obsah článku:')
 			->setHtmlAttribute('rows', 10)
 			->setHtmlAttribute('class', 'tiny-editor');
 
@@ -125,6 +125,16 @@ final class ArticlesPresenter extends \App\Presentation\Administration\BaseAdmin
 			$this->cache->remove($this->articleRepository::ALL_ARTICLE_SLUGS_CACHE_KEY);
 			$this->redirect('this', ['articleId' => $create['articleId']]);
 		}
+	}
+
+	public function handleDelete(int $articleId): void {
+		$deleted = $this->articleRepository->deleteArticle($articleId, $this->getUser()->getId());
+		if ($deleted) {
+			$this->flashMessage('Článek byl smazán.', 'success');
+		} else {
+			$this->flashMessage('Článek se nepodařilo smazat.', 'danger');
+		}
+		$this->redirect('default');
 	}
 
 }

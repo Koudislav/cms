@@ -144,4 +144,15 @@ final class MenusPresenter extends \App\Presentation\Administration\BaseAdminist
 		$this->sendJson(['status' => 'ok']);
 	}
 
+	public function handleDelete(int $id): void {
+		$this->menuRepository->softDelete($id, $this->getUser()->getId());
+		$this->cache->clean([$this->cache::Tags => self::MENU_CACHE_KEY]);
+		$this->flashMessage('Položka menu byla smazána.', 'success');
+		if ($this->isAjax()) {
+			$this->redrawControl('menu');
+		} else {
+			$this->redirect('this');
+		}
+	}
+
 }
