@@ -29,7 +29,7 @@ final class GalleriesPresenter extends \App\Presentation\Administration\BaseAdmi
 
 		if (!$galleryData) {
 			$this->flashMessage('Zvolená galerie neexistuje.', 'danger');
-			$this->redirect('galleries:default');
+			$this->redirect('Galleries:default');
 		}
 		$this->template->gallery = $galleryData;
 		$images = $this->galleryRepository->findPicturesByGalleryId($galleryId);

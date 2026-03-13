@@ -122,7 +122,7 @@ final class MenusPresenter extends \App\Presentation\Administration\BaseAdminist
 			$menuId = $this->menuRepository->createMenuItem($values);
 			$this->cache->clean([$this->cache::Tags => self::MENU_CACHE_KEY]);
 			$this->flashMessage('Položka menu byla úspěšně vytvořena.', 'success');
-			$this->redirect('menus:default', ['menuKey' => $values->menu_key, 'menuId' => $menuId]);
+			$this->redirect('Menus:default', ['menuKey' => $values->menu_key, 'menuId' => $menuId]);
 		}
 	}
 

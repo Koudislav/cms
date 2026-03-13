@@ -23,7 +23,7 @@ final class UploadManagerPresenter extends \App\Presentation\Administration\Base
 
 		if (!str_starts_with($currentFolder, $uploadDir)) {
 			$this->flashMessage('Neplatná cesta ke složce.', 'danger');
-			$this->redirect('uploadManager:default', ['folder' => null]);
+			$this->redirect('UploadManager:default', ['folder' => null]);
 		} else {
 			$relativePath = str_replace($wwwDir, '', rtrim($currentFolder, DIRECTORY_SEPARATOR));
 			$this->template->relativePath = $relativePath;

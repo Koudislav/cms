@@ -143,7 +143,7 @@ abstract class BaseAdministrationPresenter extends \App\Presentation\BasePresent
 
 	public function handleLogout(): void {
 		$this->user->logout(true);
-		$this->redirect('dashboard:default');
+		$this->redirect('Dashboard:default');
 	}
 
 	public function handleLoadTemplates(): void {
