@@ -73,4 +73,19 @@ final class DashboardPresenter extends \App\Presentation\Administration\BaseAdmi
 		$this->template->appDiskPercent = $this->diskQuota->getUsagePercent();
 	}
 
+	public function checkConsistency(): void {
+		$indexArticles = $this->articleRepository->getIndexes();
+		if (!$indexArticles) {
+			$unpublishedIndexArticles = $this->articleRepository->getIndexes(false);
+			if (!$unpublishedIndexArticles) {
+				$this->flashMessage('Varování: Není nastaven žádný článek jako úvodní stránka. V administraci vytvořte článek a nastavte ho jako "Úvodní stránka" + publikováno.', 'danger');
+			} else {
+				$this->flashMessage('Varování: Žádný článek typu \'Úvodní stránka\' není zveřejněn, jeden musí být publikovaný', 'danger');
+			}
+		}
+		if (count($indexArticles) > 1) {
+			$this->flashMessage('Varování: Je nastaveno více než jeden článek jako úvodní stránka. V administraci upravte články a nastavte pouze jeden z nich jako "Úvodní stránka" + publikováno.', 'danger');
+		}
+	}
+
 }

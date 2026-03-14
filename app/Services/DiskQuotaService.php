@@ -72,4 +72,14 @@ class DiskQuotaService {
 		return self::CacheMinutes;
 	}
 
+	public function canStore(int $bytes): bool {
+		return ($this->getUsageBytes() + $bytes) <= $this->limitBytes;
+	}
+	
+	public function assertCanStore(int $bytes): void {
+		if (!$this->canStore($bytes)) {
+			throw new \RuntimeException('Disková kvóta byla překročena.');
+		}
+	}
+
 }

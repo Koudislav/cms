@@ -5,12 +5,16 @@ declare(strict_types=1);
 namespace App\Presentation\Administration\UploadManager;
 
 use App\Forms\BootstrapFormFactory;
+use App\Service\DiskQuotaService;
 use Nette\Forms\Form;
 use Nette\Utils\FileSystem;
 use Nette\Utils\Finder;
 use Nette\Utils\Strings;
 
 final class UploadManagerPresenter extends \App\Presentation\Administration\BaseAdministrationPresenter {
+
+	/** @var \App\Service\DiskQuotaService @inject */
+	public DiskQuotaService $diskQuota;
 
 	public function actionDefault(?string $folder = null) {
 		if ($folder === '/') {
@@ -132,6 +136,13 @@ final class UploadManagerPresenter extends \App\Presentation\Administration\Base
 		$file = $values['file'];
 
 		if ($file->isOk()) {
+
+			$size = $file->getSize();
+			if (!$this->diskQuota->canStore($size)) {
+				$this->flashMessage('Disková kvóta byla překročena. Soubor nelze nahrát.', 'danger');
+				$this->redirect('this', ['folder' => $values['folder']]);
+			}
+
 			$name = $file->getName();
 			$ext = pathinfo($name, PATHINFO_EXTENSION);
 			$baseName = pathinfo($name, PATHINFO_FILENAME);
@@ -140,7 +151,13 @@ final class UploadManagerPresenter extends \App\Presentation\Administration\Base
 			$safeName = Strings::webalize($baseName) . ($ext ? '.' . $ext : '');
 
 			$filePath = $currentFolder . DIRECTORY_SEPARATOR . $safeName;
+			if (file_exists($filePath)) {
+				$this->flashMessage('Soubor s tímto názvem (' . $safeName . ') již existuje.', 'danger');
+				$this->redirect('this', ['folder' => $values['folder']]);
+			}
 			$file->move($filePath);
+
+			$this->diskQuota->clearCache();
 
 			$this->flashMessage('Soubor nahrán.', 'success');
 		} else {
@@ -166,6 +183,7 @@ final class UploadManagerPresenter extends \App\Presentation\Administration\Base
 				// Ověření, že soubor není symlink
 				unlink($fullPath);
 			}
+			$this->diskQuota->clearCache();
 			$this->sendJson(['status' => 'ok']);
 		} catch (\Nette\Application\AbortException $e) {
 			throw $e;

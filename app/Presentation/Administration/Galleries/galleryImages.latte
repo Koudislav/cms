@@ -98,6 +98,20 @@
 			formData,
 			{ history: false }
 		).then(response => {
+			if (!response.status || response.status === 'error') {
+
+				if (response.message) {
+					alert(response.message + '\nUpload byl zastaven.');
+					location.reload();
+				} else {
+					alert('Upload byl zastaven kvůli neočekávané chybě.');
+					location.reload();
+				}
+
+				// zastaví další uploady
+				files = [];
+				return;
+			}
 			current++;
 			updateProgress();
 			uploadNext();
@@ -136,7 +150,13 @@
 			const id = card.dataset.photoId;
 
 			naja.makeRequest('POST', {link deleteImage!}, { imageId: id }, { history: false })
-				.then(() => card.remove());
+				.then(response => {
+					if (response.refresh) {
+						location.reload();
+						return;
+					}
+					card.remove()
+				});
 		}
 		// Set as cover
 		if (e.target.closest('.set-cover')) {
