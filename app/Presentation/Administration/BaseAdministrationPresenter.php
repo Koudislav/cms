@@ -79,7 +79,7 @@ abstract class BaseAdministrationPresenter extends \App\Presentation\BasePresent
 
 	public function startup() {
 		parent::startup();
-		if (!$this->getUser()->isLoggedIn() && $this->getName() !== 'Administration:Dashboard') {
+		if (!$this->getUser()->isLoggedIn() && !in_array($this->getName(), ['Administration:Dashboard', 'Administration:Auth'])) {
 			if ($this->isAjax()) {
 				$this->error('Unauthorized', 403);
 			}

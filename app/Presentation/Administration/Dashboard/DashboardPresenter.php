@@ -6,7 +6,9 @@ namespace App\Presentation\Administration\Dashboard;
 
 use App\Forms\LoginFormFactory;
 use App\Repository\AppVersionsRepository;
+use App\Repository\UserRepository;
 use App\Service\DiskQuotaService;
+use App\Service\MailService;
 use Nette;
 use Nette\Caching\Cache;
 use Nette\Caching\Storage;
@@ -19,11 +21,17 @@ final class DashboardPresenter extends \App\Presentation\Administration\BaseAdmi
 	/** @var AppVersionsRepository @inject */
 	public AppVersionsRepository $appVersionsRepository;
 
+	/** @var UserRepository @inject */
+	public UserRepository $userRepository;
+
 	/** @var Storage @inject */
 	public Storage $cacheStorage;
 
 	/** @var DiskQuotaService @inject */
 	public DiskQuotaService $diskQuota;
+
+	/** @var MailService @inject */
+	public MailService $mailService;
 
 	public Cache $cache;
 
@@ -52,6 +60,20 @@ final class DashboardPresenter extends \App\Presentation\Administration\BaseAdmi
 			$this->getUser()->login($values->email, $values->password);
 			\Tracy\Debugger::log('User login success - ' . $values->email, 'user');
 		} catch (Nette\Security\AuthenticationException $e) {
+			if ($e->getCode() === UserRepository::ERROR_EMAIL_NOT_VERIFIED) {
+				$user = $this->userRepository->getByEmail($values->email);
+				if ($user) {
+					if (empty($user->email_verification_expires_at) || $user->email_verification_expires_at < new \DateTime() || empty($user->email_verification_token)) {
+						$this->flashMessage('Email není ověřen. Ověřovací odkaz expiroval, odesílám nový. Zkontrolujte svou emailovou schránku pro ověřovací odkaz.', 'warning');
+						$token = $this->userRepository->generateEmailVerification($user->id);
+						$mailLink = $this->link('//Auth:verifyEmail', ['token' => $token]);
+						$this->mailService->sendEmailVerificationMail($user->email, $mailLink);
+					} else {
+						$this->flashMessage('Email není ověřen. Zkontrolujte svou emailovou schránku pro ověřovací odkaz.', 'warning');
+					}
+				}
+				return;
+			}
 			$form->addError('Nepodařilo se přihlásit: ' . $e->getMessage());
 			\Tracy\Debugger::log('User login failed - ' . $values->email . " - {$e->getMessage()}", 'user');
 			return;

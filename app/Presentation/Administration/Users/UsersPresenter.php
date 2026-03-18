@@ -6,12 +6,16 @@ namespace App\Presentation\Administration\Users;
 
 use App\Forms\BootstrapFormFactory;
 use App\Repository\UserRepository;
+use App\Service\MailService;
 use Nette\Forms\Form;
 
 final class UsersPresenter extends \App\Presentation\Administration\BaseAdministrationPresenter {
 
 	/** @var UserRepository @inject */
-	public $userRepository;
+	public UserRepository $userRepository;
+
+	/** @var MailService @inject */
+	public MailService $mailService;
 
 	public const ROLES = [
 		'admin' => 'Administrátor',
@@ -41,11 +45,12 @@ final class UsersPresenter extends \App\Presentation\Administration\BaseAdminist
 		$isSelfEdit = $userId !== 0 && $userId === $loggedUserId;
 		$isSuperAdmin = $this->getUser()->isInRole('superadmin');
 
-		$form->addText('email', 'E-mail:')
+		$mailInput = $form->addText('email', 'E-mail:')
 			->setRequired('Zadejte e-mail uživatele.')
 			->addRule($form::Email, 'Zadejte platnou e-mailovou adresu.');
 
 		if ($isSelfEdit) {
+			$mailInput->setDisabled();
 			$form->addPassword('oldPassword', 'Současné heslo:')
 				->setRequired('Pro změnu hesla zadejte současné heslo.');
 		}
@@ -100,6 +105,7 @@ final class UsersPresenter extends \App\Presentation\Administration\BaseAdminist
 	}
 
 	public function userFormSubmitted(Form $form, $values): void {
+		if (!$this->getUser()->isLoggedIn()) return;
 		$userId = (int) $this->getParameter('userId');
 		$loggedUserId = (int) $this->getUser()->getId();
 		$isSelfEdit = $userId !== 0 && $userId === $loggedUserId;
@@ -134,7 +140,10 @@ final class UsersPresenter extends \App\Presentation\Administration\BaseAdminist
 
 		// NOVÝ UŽIVATEL
 		else {
-			$this->userRepository->createUser($values);
+			$user = $this->userRepository->createUser($values);
+			$token = $this->userRepository->generateEmailVerification($user->id);
+			$mailLink = $this->link('//Auth:verifyEmail', ['token' => $token]);
+			$this->mailService->sendEmailVerificationMail($user->email, $mailLink);
 			$this->flashMessage('Uživatel byl úspěšně vytvořen.', 'success');
 		}
 

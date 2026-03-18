@@ -19,6 +19,9 @@ class ArticleRepository {
 		'administration',
 		'gallery',
 		'upload',
+		'verify-email',
+		'verifyemail',
+		'auth',
 	];
 
 	public function __construct(

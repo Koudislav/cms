@@ -51,18 +51,19 @@ class MailService {
 		return array_filter(array_map('trim', explode(',', $recipients)));
 	}
 
-	// public function configRecipients(): array {
-	// 	$config = $this->config['mail_recipients'] ?? '';
-	// 	bdump($config, 'Raw recipients from config');
-	// 	$exploded = explode(',', $config);
-
-	// 	$recipients = [];
-	// 	foreach ($exploded as $recipient) {
-	// 		if (str_contains($recipient, '@') && str_contains($recipient, '.')) {
-	// 			$recipients[] = trim($recipient);
-	// 		}
-	// 	}
-	// 	return $recipients;
-	// }
+	public function sendEmailVerificationMail(string $email, string $link) {
+		$linkEscaped = htmlspecialchars($link, ENT_QUOTES, 'UTF-8');
+		$subject = 'Ověření e-mailu | ' . $this->config['mail_from_name'];
+		$body = "
+			<p>Dobrý den,</p>
+			<p>pro aktivaci účtu na webu <strong>{$this->config['base_url']}</strong> klikněte na následující odkaz:</p>
+			<p><a href='$linkEscaped'>Ověřit odkaz</a></p>
+			<p>Platnost odkazu je 24 hodin.</p>
+			<p>Pokud vám nefunguje klikací odkaz, zkopírujte a vložte následující URL do vašeho prohlížeče:</p>
+			<p>$linkEscaped</p>
+			<p>Pokud jste tento email nevyžádali, můžete jej ignorovat.</p>
+		";
+		$this->send($subject, $body, [$email]);
+	}
 
 }
