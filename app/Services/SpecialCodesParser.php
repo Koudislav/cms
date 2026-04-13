@@ -197,4 +197,12 @@ class SpecialCodesParser {
 		return $url;
 	}
 
+	public function articleContainer(&$articleContent): bool {
+		if (str_contains($articleContent, '[[containerFluid]]')) {
+			$articleContent = str_replace('[[containerFluid]]', '', $articleContent);
+			return true;
+		}
+		return false;
+	}
+
 }

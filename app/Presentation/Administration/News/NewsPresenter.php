@@ -25,22 +25,15 @@ final class NewsPresenter extends \App\Presentation\Administration\BaseAdministr
 
 		$form->addText('title', 'Nadpis:')
 			->setRequired();
-
 		$form->addText('slug', 'Slug:')
 			->addRule($form::Pattern, 'Neplatný slug', '^[a-z0-9\-]+$');
-
 		$form->addTextArea('excerpt', 'Perex:');
-
 		$form->addText('cover_image', 'Obrázek:');
-
 		$form->addTextArea('content', 'Obsah:')
 			->setHtmlAttribute('class', 'tiny-editor');
-
 		$form->addText('published_at', 'Publikováno:')
 			->setHtmlType('datetime-local');
-
 		$form->addCheckbox('is_published', 'Publikováno');
-
 		$form->addSubmit('submit', 'Uložit');
 
 		if ($newsId) {

@@ -92,8 +92,7 @@
 	const contentBg = document.documentElement.getAttribute('data-bg-cont') || '';
 	const contentContainer = document.documentElement.getAttribute('data-content-container') || 'container';
 
-	tinymce.init({
-		selector: '.tiny-editor',
+	const tinyConfig = {
 		relative_urls: false,
 		convert_urls: false,
 		extended_valid_elements: 'i[class]',
@@ -117,6 +116,7 @@
 				'bold italic underline | alignleft aligncenter ' +
 				'alignright alignjustify | bullist numlist outdent indent | ' +
 				'link image table | removeformat code | loadTemplate fullscreen',
+
 		content_css: [
 			'/assets/css/bootstrap.min.css',
 			'/assets/fonts/bootstrap-icons-1.11.0/bootstrap-icons.min.css',
@@ -125,7 +125,6 @@
 
 		setup: function (editor) {
 			editor.on('init', function () {
-				// Nastavení data-bs-theme uvnitř iframe
 				const iframeDoc = editor.getDoc();
 				if (iframeDoc && iframeDoc.documentElement) {
 					iframeDoc.documentElement.setAttribute('data-bs-theme', theme);
@@ -139,14 +138,12 @@
 			editor.ui.registry.addMenuButton('loadTemplate', {
 				text: 'Načíst šablonu',
 				fetch: function(callback) {
-					// Načteme seznam šablon přes Naja
-					naja.makeRequest('POST', '?do=loadTemplates', { }, { history: false })
+					naja.makeRequest('POST', '?do=loadTemplates', {}, { history: false })
 						.then(templates => {
 							const items = templates.map(t => ({
 								type: 'menuitem',
 								text: t.name,
 								onAction: function() {
-									// po kliknutí načteme obsah šablony
 									naja.makeRequest('POST', '?do=loadTemplate', { templateId: t.id }, { history: false })
 										.then(data => {
 											if (data && data.content) {
@@ -167,14 +164,25 @@
 		file_picker_callback: function(callback, value, meta) {
 			if (meta.filetype === 'image') {
 				window.tinyMceImageCallback = callback;
-				window.open(
-					'/administration/upload-manager',
-					'UploadManager',
-					'width=1200,height=800'
-				);
+				window.open('/administration/upload-manager', 'UploadManager', 'width=1200,height=800');
 			}
-		},
+		}
+	};
+	tinymce.init({
+		...tinyConfig,
+		selector: '.tiny-editor',
 	});
+
+	window.initTinyMCE = function (el) {
+		if (!el) return;
+		// zabrání duplicitní inicializaci
+		if (tinymce.get(el.id)) return;
+
+		tinymce.init({
+			...tinyConfig,
+			target: el
+		});
+	};
 
 	const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
 	const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));

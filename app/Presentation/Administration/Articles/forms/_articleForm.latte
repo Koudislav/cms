@@ -14,9 +14,6 @@
 					{label type /}
 					{input type}
 
-					{label parent_id /}
-					{input parent_id}
-
 					{label title /}
 					{input title}
 
@@ -35,11 +32,15 @@
 	<div n:if="!$systemArticle" class="card mb-3">
 		<div class="card-header">
 			<div class="text-decoration-none" type="button" data-bs-toggle="collapse" data-bs-target="#seo-collapse">
-				Pokročilé SEO a sociální sítě
+				Pokročilé + SEO a sociální sítě
 			</div>
 		</div>
 		<div class="collapse {if $seoCollapseOpen}show{/if} save-state" id="seo-collapse" data-bs-parent="#articleAccordion">
 			<div class="card-body">
+			
+				{label parent_id /}
+				{input parent_id}
+
 				{label seo_title /}
 				{input seo_title}
 
@@ -70,11 +71,28 @@
 	<div class="card mb-3">
 		<div class="card-header">Obsah šablony</div>
 		<div class="card-body">
-			{foreach $form['templateData']->controls as $control}
-				<div class="mb-2">
-					{label $control /}
-					{input $control}
-				</div>
+			{foreach $form['templateData']->getComponents() as $component}
+				{if $component instanceof Nette\Forms\Container}
+				{dump $component}
+					<div class="card">
+						<div class="card-header">
+							<strong>Opakovaná skupina</strong>
+						</div>
+						<div class="card-body mb-2">
+							{foreach $component->getControls() as $control}
+								<div class="mb-2">
+									{label $control /}
+									{input $control}
+								</div>
+							{/foreach}
+						</div>
+					</div>
+				{else}
+					<div class="mb-2">
+						<strong>{label $component /}</strong>
+						{input $component}
+					</div>
+				{/if}
 			{/foreach}
 		</div>
 	</div>

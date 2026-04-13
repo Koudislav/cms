@@ -7,6 +7,7 @@ namespace App\Forms\Administration\Article;
 use App\Forms\BootstrapFormFactory;
 use Nette\Application\UI\Form;
 use Nette\Forms\Container;
+use Nette\Http\Request;
 
 class ArticleFormFactory {
 
@@ -14,6 +15,10 @@ class ArticleFormFactory {
 		'article' => 'Běžný článek',
 		'index' => 'Úvodní stránka',
 	];
+
+	public function __construct(
+		private Request $httpRequest
+	) {}
 
 	public function createArticleForm(array $parentSelectValues, string $previewLink): Form {
 		$form = BootstrapFormFactory::create('oneLine');
@@ -122,60 +127,72 @@ class ArticleFormFactory {
 					$input = $this->createImageInput($container, $key, $label);
 					break;
 				case 'repeater':
-					$repeaterType = $config['repeater_type'];
-					$repeaterContainer = $container->addContainer('repeater_' . $key);
-					$existing = $defaults[$key] ?? null;
-					if (!is_array($existing)) {
-						$existing = [0 => ''];
-					} else {
-						// pokud existují data, zajistíme, že jsou indexována od 0 a bez mezer
-						$existing = array_values($existing);
-						if (empty($existing)) {
-							$existing = [0 => ''];
-						} else {
-							$existing[] = ''; // přidáme prázdný řádek pro možnost přidání nového řádku
-						}
-					}
-
-					// render "řádky" pro každý existující prvek
-					foreach ($existing as $i => $item) {
-						$row = $repeaterContainer->addContainer((string)$i);
-						$numberedLabel = $label . " #" . ($i+1);
-						switch ($repeaterType) {
-							case 'html':
-								$input = $this->createHtmlInput($row, 'value', $numberedLabel);
-								break;
-							case 'image':
-								$input = $this->createImageInput($row, 'value', $numberedLabel);
-								break;
-							default:
-								$input = $this->createTextInput($row, 'value', $numberedLabel);
-						}
-						$input->setDefaultValue($item['value'] ?? '');
-
-						if ($required && $i === 0) {
-							$input->setRequired("Pole '$label' je povinné.");
-						}
-					}
-
-					// JS/HTML pro přidání nového řádku (frontend musí doplnit)
-					$repeaterContainer->addButton('add', 'Přidat další')
-						->setHtmlAttribute('class', 'btn btn-sm btn-secondary add-repeater-row')
-						->setHtmlAttribute('data-repeater-key', $key);
+					$this->buildRepeater($container, $key, $label, $config, (bool)$required, $defaults[$key] ?? null);
 					break;
 
 				default:
 					$input = $this->createTextInput($container, $key, $label);
 			}
-
 			if (!in_array($type, ['repeater', 'html']) && $required) {
 				$input->setRequired("Pole '$label' je povinné.");
 			}
-
 			if ($defaults && isset($defaults[$key]) && $type !== 'repeater') {
 				$input->setDefaultValue($defaults[$key]);
 			}
 		}
+	}
+
+	public function buildRepeater(Container $container, string $key, string $label, array $config, bool $required, ?array $existing): void {
+		$emptyLine = ['value' => ''];
+		$repeaterType = $config['repeater_type'];
+		$repeaterContainer = $container->addContainer('repeater_' . $key);
+		$post = $this->httpRequest->getPost();
+		$postValues = $post['templateData']['repeater_' . $key] ?? null;
+		if (is_array($postValues)) {
+			$existing = $postValues;
+		}
+		if (!is_array($existing) || empty($existing)) {
+			$existing = [$emptyLine]; // začínáme s jedním prázdným řádkem
+		} else {
+			// pokud existují data, zajistíme, že jsou indexována od 0 a bez mezer
+			$existing = array_values($existing);
+			if (empty($existing)) {
+				$existing = [$emptyLine]; // pokud jsou data prázdná, začínáme s jedním prázdným řádkem
+			} else {
+				$existing[] = $emptyLine; // přidáme prázdný řádek pro možnost přidání nového řádku
+			}
+		}
+
+		// render "řádky" pro každý existující prvek
+		foreach ($existing as $i => $item) {
+			$row = $repeaterContainer->addContainer((string)$i);
+			$numberedLabel = $label . " #" . ($i+1);
+			switch ($repeaterType) {
+				case 'html':
+					$input = $this->createHtmlInput($row, 'value', $numberedLabel);
+					break;
+				case 'image':
+					$input = $this->createImageInput($row, 'value', $numberedLabel);
+					break;
+				default:
+					$input = $this->createTextInput($row, 'value', $numberedLabel);
+			}
+			$input->setDefaultValue($item['value'] ?? '')
+				->setHtmlAttribute('data-index', $i)
+				->setHtmlAttribute('data-repeater', $key);
+
+			if ($required && $repeaterType !== 'html' && $i === 0) {
+				$input->setRequired("Pole '$label' je povinné.");
+			}
+			$lastIndex = $i;
+		}
+
+		// JS/HTML pro přidání nového řádku (frontend musí doplnit)
+		$repeaterContainer->addButton('add', 'Přidat další')
+			->setHtmlAttribute('class', 'btn btn-sm btn-secondary add-repeater-row')
+			->setHtmlAttribute('data-repeater', $key)
+			->setHtmlAttribute('data-index', $lastIndex + 1)
+			->setHtmlAttribute('data-type', $repeaterType);
 	}
 
 	public function createHtmlInput(Container $container, string $key, string $label): \Nette\Forms\Controls\TextArea {

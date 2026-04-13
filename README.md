@@ -1,1 +1,1 @@
-# skakacka
+# JiriKodys CMS

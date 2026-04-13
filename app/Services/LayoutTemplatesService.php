@@ -15,7 +15,7 @@ class LayoutTemplatesService {
 		$latte = new Engine();
 		$latte->setLoader(new StringLoader());
 
-		$preparsedLayout = self::parseForeachBlocks($layout);
+		$preparsedLayout = self::parseForeachBlocks($layout, $variableSchema);
 
 		$parsedLayout = self::holdersToVariables($preparsedLayout, $variableSchema, $data);
 
@@ -65,7 +65,7 @@ class LayoutTemplatesService {
 			if (empty($config['repeater_type']) || $config['repeater_type'] !== 'ul') {
 
 			}
-			return "<ul class='repeater-list'>{foreach \$$variableName as \$item}<li>{\$item['value']}</li>{/foreach}</ul>";
+			return "<ul class='repeater-list'>{foreach \$$variableName as \$item}<li>{\$item['value']" . (($config['repeater_type'] ?? null) === 'html' ? '|noescape' : '') . "}</li>{/foreach}</ul>";
 		}
 
 		if ($config['type' === 'image']) {
@@ -92,16 +92,18 @@ class LayoutTemplatesService {
 		return $resolved;
 	}
 
-	public static function parseForeachBlocks(string $layout): string {
+	public static function parseForeachBlocks(string $layout, array $variableSchema): string {
 		return preg_replace_callback(
 			'/\{\{FOREACH\s+(\w+)\}\}(.*?)\{\{\/FOREACH\}\}/s',
-			function ($matches) {
+			function ($matches) use ($variableSchema) {
 				$varName = $matches[1];
 				$content = $matches[2];
+				$variableType = $variableSchema[$varName]['repeater_type'] ?? null;
+				$variable = $variableType === 'html' ? "{\$item['value']|noescape}" : "{\$item['value']}";
 				// uvnitř foreach nahradíme {{repeater}} → {$item['value']}
 				$content = preg_replace(
 					'/\{\{' . $varName . '\}\}/',
-					"{\$item['value']}",
+					$variable,
 					$content
 				);
 

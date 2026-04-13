@@ -54,6 +54,7 @@ final class ArticlePresenter extends \App\Presentation\BasePresenter {
 
 		$parser = new SpecialCodesParser($this);
 		$articleContent = $parser->parse($content);
+		$this->template->articleContainerFluid = $parser->articleContainer($articleContent);
 
 		$this->template->articleContent = $articleContent;
 		$this->template->article = $article;
@@ -74,7 +75,9 @@ final class ArticlePresenter extends \App\Presentation\BasePresenter {
 		];
 
 		$parser = new SpecialCodesParser($this);
-		$this->template->articleContent = $parser->parse($article->content);
+		$articleContent = $parser->parse($article->content);
+		$this->template->articleContainerFluid = $parser->articleContainer($articleContent);
+		$this->template->articleContent = $articleContent;
 		$this->template->article = $article;
 
 		$this->overWriteSeo($article);
