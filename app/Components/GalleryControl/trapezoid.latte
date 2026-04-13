@@ -1,5 +1,5 @@
 <div class="position-relative pt-4">
-	<div class="photo-row-trapezoid my-3">
+	<div class="photo-row-trapezoid my-3 fade-in-bottom">
 		{var $randomKey = rand(1000, 9999)}
 		{var $usedGalleryIds = []}
 		{foreach $photos as $photo}
@@ -16,8 +16,8 @@
 
 	{if !empty($top) || !empty($second)}
 		<div class="header-overlay position-absolute top-0 text-center w-100">
-			<div class="h1">{$top}</div>
-			<span n:class="empty($toLeft) ? float-end : float-start, color-secondary, fw-bold" style="font-size: clamp(1rem, 5vw, 4rem);">{$second}</span>
+			<div class="h1 fade-in-right">{$top}</div>
+			<span n:class="empty($toLeft) ? float-end : float-start, color-secondary, fw-bold, fade-in-left" style="font-size: clamp(1rem, 5vw, 4rem);">{$second}</span>
 		</div>
 	{/if}
 </div>
