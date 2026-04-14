@@ -28,6 +28,7 @@ class TemplateRepository {
 		'image' => 'Obrázek',
 	];
 	public const VARIABLE_REGEX = '/\{\{([a-z0-9_]+)\}\}/i';
+	public const SYSTEM_VARIABLE_PREFIX = 'systemArticleVariable';
 
 	public function __construct(
 		private Explorer $db,
@@ -117,7 +118,13 @@ class TemplateRepository {
 
 	public function extractVariables(string $template): array {
 		preg_match_all(self::VARIABLE_REGEX, $template, $matches);
-		return array_unique($matches[1]);
+		$variables = array_unique($matches[1]);
+		foreach ($variables as $key => $var) {
+			if (str_starts_with($var, self::SYSTEM_VARIABLE_PREFIX)) {
+				unset($variables[$key]);
+			}
+		}
+		return $variables;
 	}
 
 	private function defaultSchemaForVariable(string $variable): array {

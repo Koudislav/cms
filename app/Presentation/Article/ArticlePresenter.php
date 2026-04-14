@@ -202,7 +202,9 @@ final class ArticlePresenter extends \App\Presentation\BasePresenter {
 			$template = $this->templateRepository->getTemplateById((int)$article->template_id);
 			if ($template) {
 				$placeholders = json_decode($template->placeholders_json, true) ?: [];
+				$placeholders = $this->addSystemPlaceholders($placeholders);
 				$data = $this->templateRepository->resolveDataDefaults($placeholders, $article->template_data_json);
+				$data = $this->addSystemVariables($data, $article);
 				$content = LayoutTemplatesService::renderLayout($template->content, $placeholders, $data);
 			} else {
 				throw new \Exception("Template with ID {$article->template_id} not found.");
@@ -213,7 +215,9 @@ final class ArticlePresenter extends \App\Presentation\BasePresenter {
 				$template = $this->templateRepository->getTemplateHistory((int)$article->template_id, (int)$article->template_version);
 				if ($template) {
 					$placeholders = json_decode($template->placeholders_json, true) ?: [];
+					$placeholders = $this->addSystemPlaceholders($placeholders);
 					$data = $this->templateRepository->resolveDataDefaults($placeholders, $article->template_data_json);
+					$data = $this->addSystemVariables($data, $article);
 					$content = LayoutTemplatesService::renderLayout($template->content, $placeholders, $data);
 				} else {
 					throw new \Exception("Historical template with ID {$article->template_id} and version {$article->template_version} not found.");
@@ -229,6 +233,20 @@ final class ArticlePresenter extends \App\Presentation\BasePresenter {
 			}
 		}
 		return $content;
+	}
+
+	public function addSystemVariables(array $data, $article): array {
+		$data[$this->templateRepository::SYSTEM_VARIABLE_PREFIX . 'Title'] = $article->title;
+		return $data;
+	}
+
+	public function addSystemPlaceholders(array $placeholders): array {
+		$placeholders[$this->templateRepository::SYSTEM_VARIABLE_PREFIX . 'Title'] = [
+			'type' => 'text',
+			'label' => 'Název článku',
+			'required' => false,
+		];
+		return $placeholders;
 	}
 
 }
