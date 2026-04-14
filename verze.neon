@@ -1,2 +1,3 @@
 do nove verze:
 	- novy shortcode [[@menu::article|id|order|]]
+	- systemove variables do sablon - zatim {{systemArticleVariableTitle}}

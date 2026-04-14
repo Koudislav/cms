@@ -77,14 +77,18 @@ final class MenusPresenter extends \App\Presentation\Administration\BaseAdminist
 
 		if ($menuKey !== '0' && !empty($menuId)) {
 			$menuItem = $this->menuRepository->getById($menuId, $menuKey);
-			$form->setDefaults([
-				'label' => $menuItem['db']->label,
-				'is_active' => $menuItem['db']->is_active == 1,
-				'linkType' => $menuItem['processed']['linkType'],
-				'linkedArticleSlug' => $menuItem['processed']['linkedArticleSlug'],
-				'parent_id' => $menuItem['db']->parent_id,
-				'galleryId' => $menuItem['processed']['galleryId'] ?? null,
-			]);
+			try {
+				$form->setDefaults([
+					'label' => $menuItem['db']->label,
+					'is_active' => $menuItem['db']->is_active == 1,
+					'linkType' => $menuItem['processed']['linkType'],
+					'linkedArticleSlug' => $menuItem['processed']['linkedArticleSlug'],
+					'parent_id' => $menuItem['db']->parent_id,
+					'galleryId' => $menuItem['processed']['galleryId'] ?? null,
+				]);
+			} catch (\Exception $e) {
+				$form->addError('Chyba při načítání položky menu: ' . $e->getMessage() . PHP_EOL . 'Pravděpodobně došlo k odstranění cíle z databáze. Opravte nebo smažte tuto položku menu!');
+			}
 			$form->addButton('delete', 'Smazat')
 				->setHtmlAttribute('class', 'btn btn-danger')
 				->setHtmlAttribute('onclick', 'if(confirm("Opravdu chcete smazat tuto položku menu?")) { document.location = "' . $this->link('delete!', ['menuId' => $menuId]) . '"; } return false;');

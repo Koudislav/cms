@@ -3,6 +3,7 @@ Novinky:
 	- Dodelat router, vypis vsech, menu.
 	- Dodelat nacitani ve vlastni sablone.
 articles - obnoveni historie / historie overit funkcnost az k aktualnimu stavu
+smazani clanku s detmi, smazat i deti ale zeptat se
 nseting clanku - generovani menu pro deti, ?upravit seo structured data?
 tvorba menu / menupresenter - jine tvoreni odkazu do articles i galerie
 nastaveni - enumy, osetrit nullable

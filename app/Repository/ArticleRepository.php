@@ -229,6 +229,7 @@ class ArticleRepository {
 			'deleted_at' => new \DateTime(),
 			'deleted_by' => $userId,
 			'slug' => $this->generateAvailableSlug('deleted-article-' . $article->slug),
+			'path' => 'deleted-article-' . $article->path . random_int(1000, 9999),
 		]);
 	}
 
