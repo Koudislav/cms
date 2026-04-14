@@ -325,7 +325,7 @@ class ArticleRepository {
 	public function getArticleTree(?int $parentId = null): array {
 		$rows = $this->db->table(self::ARTICLES_TABLE)
 			->where('deleted_at', null)
-			->order('path ASC') // nebo 'position ASC', pokud máš pořadí
+			->order('path ASC')
 			->fetchAll();
 
 		$tree = [];
@@ -356,6 +356,19 @@ class ArticleRepository {
 			->where('path', $path)
 			->where('is_published', 1)
 			->fetch() ?: null;
+	}
+
+	public function getChildren(int $articleId, array $params = []): ?array {
+		$query = $this->db->table(self::ARTICLES_TABLE)
+			->where('deleted_at', null)
+			->where('parent_id', $articleId)
+			->where('is_published', 1);
+		if (isset($params['order'])) {
+			$query->order($params['order']);
+		} else {
+			$query->order('created_at DESC');
+		}
+		return $query->fetchAll() ?: null;
 	}
 
 }

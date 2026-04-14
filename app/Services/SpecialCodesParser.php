@@ -17,6 +17,7 @@ class SpecialCodesParser {
 		'form::contact',
 		'calendar::basic',
 		'news::latest',
+		'menu::article',
 	];
 
 	public function __construct(
@@ -26,7 +27,7 @@ class SpecialCodesParser {
 	/**
 	 * Nahradí text komponentami
 	 */
-	public function parse(string $text): string {
+	public function parse(string $text, ?int $articleId = null): string {
 		$placeholders = [];
 
 		// schovej <code> a <pre>
@@ -36,7 +37,7 @@ class SpecialCodesParser {
 			return $key;
 		}, $text);
 
-		$text = preg_replace_callback('/\[\[@([a-z0-9:_]+)((?:\|[a-z0-9_]+=[^|\]]*)*)\]\]/i', function ($matches) {
+		$text = preg_replace_callback('/\[\[@([a-z0-9:_]+)((?:\|[a-z0-9_]+=[^|\]]*)*)\]\]/i', function ($matches) use ($articleId) {
 			$action = $matches[1];
 			$paramsString = $matches[2]; // |id=6|big=Zážitkový|small=Učení
 			$params = [];
@@ -62,7 +63,7 @@ class SpecialCodesParser {
 
 			try {
 				$fn = $this->resolveFunctionName($action);
-				return $this->$fn($params);
+				return $this->$fn($params, $articleId);
 			} catch (\Throwable $e) {
 				Debugger::log("Chyba při renderování komponenty pro akci '$action': " . $e->getMessage(), Debugger::ERROR);
 				return $matches[0]; // ponech původní text
@@ -203,6 +204,53 @@ class SpecialCodesParser {
 			return true;
 		}
 		return false;
+	}
+
+	public function renderMenuArticle(array $params, ?int $articleId): string {
+		if ($params['id'] ?? null) {
+			$articleId = (int)$params['id'];
+		}
+		if (!$articleId) {
+			return '';
+		}
+		$articles = $this->presenter->articleRepository->getChildren($articleId, $params);
+		if (empty($articles)) {
+			return '';
+		}
+		$items = [];
+		foreach ($articles as $article) {
+			$items[] = [
+				'title' => $article->title,
+				'link' => $this->presenter->link('//Article:default', ['path' => $article->path]),
+				'createdAt' => $article->created_at->format('d.m.Y H:i'),
+			];
+		}
+		if (!empty($params['template'])) {
+			try {
+				return $this->menuArticleTemplate($items, $params);
+			} catch (\Throwable $e) {
+				Debugger::log("Chyba při renderování šablony pro manu::article: " . $e->getMessage(), Debugger::ERROR);
+			}
+		}
+		$latte = new Engine();
+		return $latte->renderToString(
+			__DIR__ . '/../Components/Menu/default.latte',
+			[
+				'menus' => $items,
+			]
+		);
+	}
+
+	public function menuArticleTemplate(array $items, array $params): string {
+		$template = $this->presenter->templateRepository->getTemplateById((int)$params['template'])->content;
+		$template = $this->holdersToVariables($template);
+		$latte = new Engine();
+		$latte->setLoader(new StringLoader());
+		$stringHtml = '';
+		foreach ($items as $item) {
+			$stringHtml .= $latte->renderToString($template, $item);
+		}
+		return $stringHtml;
 	}
 
 }

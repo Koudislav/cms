@@ -1,4 +1,7 @@
-novinky - breadcrumbs
+Novinky:
+	- breadcrumbs
+	- Dodelat router, vypis vsech, menu.
+	- Dodelat nacitani ve vlastni sablone.
 articles - obnoveni historie / historie overit funkcnost az k aktualnimu stavu
 nseting clanku - generovani menu pro deti, ?upravit seo structured data?
 tvorba menu / menupresenter - jine tvoreni odkazu do articles i galerie

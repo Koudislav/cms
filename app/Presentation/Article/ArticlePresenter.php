@@ -40,7 +40,7 @@ final class ArticlePresenter extends \App\Presentation\BasePresenter {
 	private const WWW_DIR = __DIR__ . '/../../../www';
 
 	public function actionDefault(string $path): void {
-		$article = $this->articleRepository->getByPath($path);;
+		$article = $this->articleRepository->getByPath($path);
 
 		if (!$article || !$article->is_published) {
 			$this->error('Článek nenalezen'); // 404
@@ -53,7 +53,7 @@ final class ArticlePresenter extends \App\Presentation\BasePresenter {
 		}
 
 		$parser = new SpecialCodesParser($this);
-		$articleContent = $parser->parse($content);
+		$articleContent = $parser->parse($content, $article->id);
 		$this->template->articleContainerFluid = $parser->articleContainer($articleContent);
 
 		$this->template->articleContent = $articleContent;
