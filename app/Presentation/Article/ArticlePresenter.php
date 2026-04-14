@@ -237,15 +237,23 @@ final class ArticlePresenter extends \App\Presentation\BasePresenter {
 
 	public function addSystemVariables(array $data, $article): array {
 		$data[$this->templateRepository::SYSTEM_VARIABLE_PREFIX . 'Title'] = $article->title;
+		$data[$this->templateRepository::SYSTEM_VARIABLE_PREFIX . 'ArticleId'] = $article->id;
+		if (!empty($article->parent_id)) {
+			$data[$this->templateRepository::SYSTEM_VARIABLE_PREFIX . 'ParentId'] = $article->parent_id;
+		}
 		return $data;
 	}
 
 	public function addSystemPlaceholders(array $placeholders): array {
-		$placeholders[$this->templateRepository::SYSTEM_VARIABLE_PREFIX . 'Title'] = [
+		$variableSettings = [
 			'type' => 'text',
-			'label' => 'Název článku',
+			'label' => null,
 			'required' => false,
 		];
+		$variables = ['Title', 'ArticleId', 'ParentId'];
+		foreach ($variables as $var) {
+			$placeholders[$this->templateRepository::SYSTEM_VARIABLE_PREFIX . $var] = $variableSettings;
+		}
 		return $placeholders;
 	}
 

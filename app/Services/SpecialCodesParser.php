@@ -217,12 +217,15 @@ class SpecialCodesParser {
 		if (empty($articles)) {
 			return '';
 		}
+		$currentLink = $this->presenter->link('//this');
 		$items = [];
 		foreach ($articles as $article) {
+			$link = $this->presenter->link('//Article:default', ['path' => $article->path]);
 			$items[] = [
 				'title' => $article->title,
-				'link' => $this->presenter->link('//Article:default', ['path' => $article->path]),
+				'link' => $link,
 				'createdAt' => $article->created_at->format('d.m.Y H:i'),
+				'active' => $currentLink === $link ? 'active' : '',
 			];
 		}
 		if (!empty($params['template'])) {

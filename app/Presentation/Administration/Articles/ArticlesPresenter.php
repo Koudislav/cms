@@ -120,9 +120,11 @@ final class ArticlesPresenter extends \App\Presentation\Administration\BaseAdmin
 			];
 			if ($articleId) {
 				$this->articleRepository->updateArticleFromArray($articleId, $data, $this->user->getId());
+				$this->clearSlugCache();
 				$this->redirect('this');
 			} else {
 				$create = $this->articleRepository->createArticleFromArray($data, $this->user->getId());
+				$this->clearSlugCache();
 				$this->redirect('this', ['articleId' => $create['articleId']]);
 			}
 		};
@@ -148,8 +150,7 @@ final class ArticlesPresenter extends \App\Presentation\Administration\BaseAdmin
 			} else {
 				$this->flashMessage('Článek byl úspěšně upraven.', 'success');
 			}
-			$this->cache->remove($this->articleRepository::ALL_ARTICLE_PATHS_CACHE_KEY);
-			$this->cache->clean([$this->cache::Tags => ['articleAssets']]);
+			$this->clearSlugCache();
 			$this->redirect('this');
 		} else {
 			//novy
@@ -159,8 +160,7 @@ final class ArticlesPresenter extends \App\Presentation\Administration\BaseAdmin
 					$this->flashMessage($msg, $type);
 				}
 			}
-			$this->cache->remove($this->articleRepository::ALL_ARTICLE_PATHS_CACHE_KEY);
-			$this->cache->clean([$this->cache::Tags => ['articleAssets', 'articleBreadcrumbs']]);
+			$this->clearSlugCache();
 			$this->redirect('this', ['articleId' => $create['articleId']]);
 		}
 	}
@@ -250,6 +250,11 @@ final class ArticlesPresenter extends \App\Presentation\Administration\BaseAdmin
 			}
 		}
 		return $tree;
+	}
+
+	private function clearSlugCache(): void {
+		$this->cache->remove($this->articleRepository::ALL_ARTICLE_PATHS_CACHE_KEY);
+		$this->cache->clean([$this->cache::Tags => ['articleAssets', 'articleBreadcrumbs']]);
 	}
 
 }

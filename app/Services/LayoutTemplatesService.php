@@ -41,7 +41,7 @@ class LayoutTemplatesService {
 		return $url;
 	}
 
-	public static function resolveVariableStringForTeplate(string $variableName, ?array $config, string|array|null $value): string {
+	public static function resolveVariableStringForTeplate(string $variableName, ?array $config, mixed $value): string {
 		if (!$config) {
 			Debugger::log("Variable '{$variableName}' not found in schema.", 'warning');
 			return '';
@@ -66,10 +66,6 @@ class LayoutTemplatesService {
 
 			}
 			return "<ul class='repeater-list'>{foreach \$$variableName as \$item}<li>{\$item['value']" . (($config['repeater_type'] ?? null) === 'html' ? '|noescape' : '') . "}</li>{/foreach}</ul>";
-		}
-
-		if ($config['type' === 'image']) {
-			return self::imageLatte($variableName);
 		}
 
 		return "{\${$variableName}}";

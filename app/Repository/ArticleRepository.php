@@ -19,14 +19,15 @@ class ArticleRepository {
 
 	public const FORBIDEN_SLUGS = [
 		'administration',
+		'auth',
 		'gallery',
+		'news',
+		'novinka',
+		'novinky',
+		'unsubscribe',
 		'upload',
 		'verify-email',
 		'verifyemail',
-		'auth',
-		'unsubscribe',
-		'novinky',
-		'novinka',
 	];
 
 	public function __construct(

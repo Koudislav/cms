@@ -1,7 +1,8 @@
+{dump}
 <div class="list-group">
 	{foreach $menus as $item}
 		<a href="{$item['link']}" 
-		   class="list-group-item list-group-item-action">
+		   class="{$item['active']} list-group-item list-group-item-action">
 			{$item['title']}
 		</a>
 	{/foreach}
