@@ -23,6 +23,14 @@ final class DefaultConfiguration {
 			'default' => '',
 		],
 
+		'main_menu' => [
+			'category' => 'basic',
+			'type' => 'string',
+			'description' => 'Název hlavního menu.',
+			'sort_order' => 110,
+			'default' => 'main_horizontal',
+		],
+
 		'aplication_size' => [
 			'category' => 'basic',
 			'type' => 'string',

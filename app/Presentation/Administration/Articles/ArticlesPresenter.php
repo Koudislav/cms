@@ -66,6 +66,7 @@ final class ArticlesPresenter extends \App\Presentation\Administration\BaseAdmin
 				'seo_description' => $articleData->seo_description,
 				'og_image' => $articleData->og_image,
 				'parent_id' => $articleData->parent_id,
+				'inherits_from_id' => $articleData->inherits_from_id,
 			]);
 		}
 
@@ -111,6 +112,7 @@ final class ArticlesPresenter extends \App\Presentation\Administration\BaseAdmin
 				'og_image' => $values->og_image,
 				'is_published' => $values->is_published,
 				'parent_id' => $values->parent_id,
+				'inherits_from_id' => $values->inherits_from_id,
 				'show_title' => 0,
 
 				'content' => $template->content,

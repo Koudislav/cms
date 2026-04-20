@@ -213,19 +213,31 @@ class SpecialCodesParser {
 		if (!$articleId) {
 			return '';
 		}
-		$articles = $this->presenter->articleRepository->getChildren($articleId, $params);
+		$params['overBread'] = $this->presenter->getHttpRequest()->getQuery('over-bread');
+		$articles = $this->presenter->articleRepository->getInheritChildren($articleId, $params);
 		if (empty($articles)) {
 			return '';
 		}
 		$currentLink = $this->presenter->link('//this');
 		$items = [];
 		foreach ($articles as $article) {
-			$link = $this->presenter->link('//Article:default', ['path' => $article->path]);
+			$linkParams = ['path' => $article['path']];
+			if (!empty($article['override_breadcrumbs'])) {
+				$linkParams['over-bread'] = $article['override_breadcrumbs'];
+			}
+			if (!empty($article['override_breadcrumbs_get'])) {
+				$linkParams['over-bread-prev'] = $article['override_breadcrumbs_get'];
+			}
+			$link = $this->presenter->link('//Article:default', $linkParams);
+			$currentPath = parse_url($currentLink, PHP_URL_PATH);
+			$linkPath = parse_url($link, PHP_URL_PATH);
+			$active = $currentPath === $linkPath;
+
 			$items[] = [
-				'title' => $article->title,
+				'title' => $article['title'],
 				'link' => $link,
-				'createdAt' => $article->created_at->format('d.m.Y H:i'),
-				'active' => $currentLink === $link ? 'active' : '',
+				'createdAt' => $article['created_at']->format('d.m.Y H:i'),
+				'active' => $active ? 'active' : '',
 			];
 		}
 		if (!empty($params['template'])) {

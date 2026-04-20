@@ -35,6 +35,8 @@ final class MenusPresenter extends \App\Presentation\Administration\BaseAdminist
 		$form = BootstrapFormFactory::create('oneLine');
 		$menuKey = (string) $this->getParameter('menuKey');
 		$menuId = (int) $this->getParameter('menuId');
+
+		$form->addGroup();
 		$menuKeyInput = $form->addText('menu_key', 'Název menu:');
 
 		if ($menuKey !== '0') {
@@ -44,6 +46,7 @@ final class MenusPresenter extends \App\Presentation\Administration\BaseAdminist
 		}
 
 		$parents = $this->menuRepository->getRootItemsForSelect($menuKey);
+		$articleList = $this->articleRepository->getArticleOptions(null, ['returnKey' => 'path']);
 
 		$form->addSelect('parent_id', 'Nadřazená položka:', $parents)
 			->setPrompt('— hlavní položka —');
@@ -53,12 +56,12 @@ final class MenusPresenter extends \App\Presentation\Administration\BaseAdminist
 
 		$linkType = $form->addSelect('linkType', 'Typ odkazu:', self::MENU_LINK_TYPES)->setDefaultValue('article');
 
-		$linkType->addCondition($form::Equal, 'article')
+		$linkType->addCondition($form::Equal, ['article', 'parent'])
 			->toggle('#linkedArticleSlug-pair-container');
 		$linkType->addCondition($form::Equal, 'gallery')
 			->toggle('#galleryId-pair-container');
 
-		$linkedArticleSlug = $form->addSelect('linkedArticleSlug', 'Propojit s článkem:', $this->articleRepository->getArticleOptions(null, ['returnKey' => 'path']))
+		$linkedArticleSlug = $form->addSelect('linkedArticleSlug', 'Propojit s článkem:', $articleList)
 			->setPrompt('Žádný článek');
 
 		$linkedArticleSlug->setOption('container-id', 'linkedArticleSlug-pair-container');
@@ -77,17 +80,21 @@ final class MenusPresenter extends \App\Presentation\Administration\BaseAdminist
 
 		if ($menuKey !== '0' && !empty($menuId)) {
 			$menuItem = $this->menuRepository->getById($menuId, $menuKey);
+			$form->setDefaults([
+				'label' => $menuItem['db']->label,
+				'is_active' => $menuItem['db']->is_active == 1,
+				'linkType' => $menuItem['processed']['linkType'],
+				'galleryId' => $menuItem['processed']['galleryId'] ?? null,
+			]);
 			try {
-				$form->setDefaults([
-					'label' => $menuItem['db']->label,
-					'is_active' => $menuItem['db']->is_active == 1,
-					'linkType' => $menuItem['processed']['linkType'],
-					'linkedArticleSlug' => $menuItem['processed']['linkedArticleSlug'],
-					'parent_id' => $menuItem['db']->parent_id,
-					'galleryId' => $menuItem['processed']['galleryId'] ?? null,
-				]);
+				$form['linkedArticleSlug']->setDefaultValue($menuItem['processed']['linkedArticleSlug']);
 			} catch (\Exception $e) {
 				$form->addError('Chyba při načítání položky menu: ' . $e->getMessage() . PHP_EOL . 'Pravděpodobně došlo k odstranění cíle z databáze. Opravte nebo smažte tuto položku menu!');
+			}
+			try {
+				$form['parent_id']->setDefaultValue($menuItem['db']->parent_id);
+			} catch (\Exception $e) {
+				$form->addError('Chyba při načítání položky menu: ' . $e->getMessage() . PHP_EOL . 'Položka byla přidána pod rodiče, který již neexistuje, nebo se změnilo jeho nastavení a tato položka již není podřazenou položkou. Opravte nebo smažte tuto položku menu!');
 			}
 			$form->addButton('delete', 'Smazat')
 				->setHtmlAttribute('class', 'btn btn-danger')

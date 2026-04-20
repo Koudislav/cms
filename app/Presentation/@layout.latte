@@ -74,18 +74,23 @@
 			};
 		});
 
-		const fadeInRightEls = document.querySelectorAll('.fade-in-right, .fade-in-left, .fade-in-bottom, .fade-in-top');
+		const fadeEls = document.querySelectorAll(
+		'.fade-in-right, .fade-in-left, .fade-in-bottom, .fade-in-top'
+		);
+
 		const fadeinObserver = new IntersectionObserver((entries) => {
-			entries.forEach(entry => {
-				if (entry.isIntersecting) {
+		entries.forEach(entry => {
+			if (entry.isIntersecting) {
 				entry.target.classList.add('visible');
+				fadeinObserver.unobserve(entry.target); // just once
 				}
 			});
 		}, {
-			threshold: 0.2 // spustí se když je 20 % prvku viditelné
+			rootMargin: "0px 0px -15% 0px", // 
+			threshold: 0
 		});
 
-		fadeInRightEls.forEach(el => fadeinObserver.observe(el));
+		fadeEls.forEach(el => fadeinObserver.observe(el));
 
 		{if $ga4Id ?? null}
 		//Konverze na kontakt formu

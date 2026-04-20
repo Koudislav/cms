@@ -129,22 +129,35 @@ class MenuRepository {
 	}
 
 	public function resolveParams(\stdClass $values): array {
+		$return = ['path' => null, 'target_id' => null, 'render_type' => 'link'];
 		switch ($values->linkType) {
 			case 'article':
-				return ['path' => $values->linkedArticleSlug];
+				$return['path'] = $values->linkedArticleSlug;
+				break;
+			case 'parent':
+				if (!empty($values->linkedArticleSlug)) {
+					$return['path'] = $values->linkedArticleSlug;
+					$return['render_type'] = 'dropdown';
+				}
+				break;
 			case 'gallery':
 				if (is_numeric($values->galleryId)) {
-					return ['target_id' => (int) $values->galleryId];
+					$return['target_id'] = (int) $values->galleryId;
 				}
-			default: return [];
+				break;
 		}
+		return $return;
 	}
 
 	public function backProcessForForm(ActiveRow $row): array {
 		$basic = ['linkedArticleSlug' => null];
 
 		if ($row->presenter === null) {
-			return ['linkType' => 'parent'] + $basic;
+			$parent = ['linkType' => 'parent'] + $basic;
+			if ($row->render_type === 'dropdown') {
+				$parent['linkedArticleSlug'] = $row->path ?? null;
+			}
+			return $parent;
 		}
 		if ($row->presenter === 'Article' && $row->action === 'default') {
 			return [
@@ -187,7 +200,8 @@ class MenuRepository {
 			->where('deleted_at', null)
 			->where('menu_key', $menuKey)
 			->where('parent_id IS NULL')
-			->where('presenter', null);
+			->where('presenter', null)
+			->where('render_type != ?', 'dropdown');
 
 		if ($excludeId) {
 			$q->where('id != ?', $excludeId);

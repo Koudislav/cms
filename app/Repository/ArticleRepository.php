@@ -48,7 +48,6 @@ class ArticleRepository {
 
 	public function updateArticle(int $articleId, \stdClass $values, int $userId): bool {
 		$article = $this->getArticleById($articleId);
-
 		if ($article) {
 			$data = [];
 			$update = false;
@@ -60,7 +59,7 @@ class ArticleRepository {
 				$this->assertNoCycle($articleId, $parentId);
 			}
 
-			$toUpdate = ['title', 'slug', 'parent_id', 'content', 'type', 'show_title', 'is_published', 'seo_title', 'seo_description', 'og_image'];
+			$toUpdate = ['title', 'slug', 'parent_id', 'inherits_from_id', 'content', 'type', 'show_title', 'is_published', 'seo_title', 'seo_description', 'og_image'];
 			if ($article->is_system) {
 				$toUpdate = ['content'];
 			} else {
@@ -111,6 +110,7 @@ class ArticleRepository {
 			'title' => $values->title,
 			'slug' => $slug,
 			'parent_id' => $parentId,
+			'inherits_from_id' => $values->inherits_from_id ?? null,
 			'path' => $path,
 			'content' => $values->content,
 			'type' => $values->type,
@@ -360,17 +360,78 @@ class ArticleRepository {
 			->fetch() ?: null;
 	}
 
-	public function getChildren(int $articleId, array $params = []): ?array {
-		$query = $this->db->table(self::ARTICLES_TABLE)
+	public function getChildrenByPath(string $path): array {
+		$row = $this->db->table(self::ARTICLES_TABLE)
+			->where('deleted_at', null)
+			->where('path', $path)
+			->where('is_published', 1)
+			->fetch();
+		return $row ? $this->getChildren($row->id) : [];
+	}
+
+	public function getChildren(int $articleId): array {
+		return $this->db->table(self::ARTICLES_TABLE)
 			->where('deleted_at', null)
 			->where('parent_id', $articleId)
-			->where('is_published', 1);
-		if (isset($params['order'])) {
-			$query->order($params['order']);
-		} else {
-			$query->order('created_at DESC');
-		}
-		return $query->fetchAll() ?: null;
+			->where('is_published', 1)
+			->fetchAll();
 	}
+
+	public function getInheritChildren(int $articleId, array $params = []): array {
+		$getBreadcrums = !empty($params['overBread']) ? $params['overBread'] : [];
+		$article = $this->getArticleById($articleId);
+		$articlePath = $article ? $article->path : null;
+		$chain = $this->getInheritanceChain($articleId);
+		$grouped = [];
+		$firstRun = true;
+		foreach ($chain as $id) {
+			$rows = $this->db->table(self::ARTICLES_TABLE)
+				->where('deleted_at', null)
+				->where('parent_id', $id)
+				->where('is_published', 1)
+				->fetchAll();
+
+			foreach ($rows as $row) {
+				$key = $row->slug; // nebo jiný unique identifikátor v rámci parentu
+				// první výskyt vyhrává (aktuální verze má prioritu)
+				if (!isset($grouped[$key])) {
+					$grouped[$key] = $row->toArray();
+					if (!$firstRun || !empty($getBreadcrums)) {
+						$overrideBreadcumbs = explode('/', $articlePath);
+						foreach ($getBreadcrums as $breadKey => $crumb) {
+							$overrideBreadcumbs[$breadKey] = $crumb;
+						}
+						$grouped[$key]['override_breadcrumbs'] = $overrideBreadcumbs;
+					}
+				}
+			}
+			$firstRun = false;
+		}
+
+		usort($grouped, function ($a, $b) {
+			return $b['created_at'] <=> $a['created_at'];
+		});
+
+		return array_values($grouped);
+	}
+
+	public function getInheritanceChain(?int $articleId, bool $getRows = false): array {
+		$chain = [];
+		while ($articleId) {
+			$article = $this->getArticleById($articleId);
+			if (!$article) {
+				break;
+			}
+			if ($getRows) {
+				$chain[$articleId] = $article;
+			} else {
+				$chain[] = $articleId;
+			}
+			$articleId = $article->inherits_from_id;
+		}
+		return $chain;
+	}
+
+
 
 }

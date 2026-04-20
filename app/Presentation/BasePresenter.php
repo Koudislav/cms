@@ -14,6 +14,7 @@ use App\Service\SitemapGenerator;
 use Nette\Application\UI\Form;
 use Nette\Caching\Cache;
 use Nette\Caching\Storage;
+use Nette\Database\Table\ActiveRow;
 
 class BasePresenter extends Nette\Application\UI\Presenter {
 
@@ -92,11 +93,14 @@ class BasePresenter extends Nette\Application\UI\Presenter {
 			$dependencies[Cache::Tags] = [self::MENU_CACHE_KEY];
 
 			$menu = [];
-			$menuItems = $this->menuRepository->findByKeyStructured('main_horizontal', true);
+			$menuItems = $this->menuRepository->findByKeyStructured($this->config['main_menu'], true);
 
 			foreach ($menuItems as $item) {
-				if (empty($item['item']->presenter)) {
+				if (empty($item['item']->presenter) || $item['item']->render_type === 'dropdown') {
 					$children = [];
+					if ($item['item']->render_type === 'dropdown') {
+						$item['children'] = $this->findMenuChildren($item['item']);
+					}
 
 					foreach ($item['children'] as $child) {
 						$children[] = $this->processNavbarMenuItem(['item' => $child]);
@@ -105,6 +109,7 @@ class BasePresenter extends Nette\Application\UI\Presenter {
 					$menu[] = [
 						'label' => $item['item']->label,
 						'isParent' => true,
+						'renderType' => 'dropdown',
 						'children' => $children,
 						'isActive' => false,
 					];
@@ -138,13 +143,14 @@ class BasePresenter extends Nette\Application\UI\Presenter {
 			),
 			'isParent' => false,
 			'isActive' => false,
-			'item' => $item['item']->toArray(),
+			'renderType' => $item['item']->render_type ?? 'link',
+			'item' => ($item['item'] instanceof \stdClass) ? (array) $item['item'] : $item['item']->toArray(),
 		];
 	}
 
 	private function markActiveItems(array $items): array {
 		foreach ($items as &$item) {
-
+			$item = (array) $item;
 			if (!empty($item['children'])) {
 				$item['children'] = $this->markActiveItems($item['children']);
 
@@ -166,13 +172,12 @@ class BasePresenter extends Nette\Application\UI\Presenter {
 				);
 			}
 		}
-
 		return $items;
 	}
 
 	public function buildMenuParams($item): array {
 		$params = [];
-		$itemArray = is_array($item) ? $item : $item->toArray();
+		$itemArray = is_array($item) ? $item : (($item instanceof \stdClass) ? (array) $item : $item->toArray());
 		if (!empty($itemArray['path'])) {
 			$params['path'] = $itemArray['path'];
 		}
@@ -183,13 +188,20 @@ class BasePresenter extends Nette\Application\UI\Presenter {
 	}
 
 	public function seoData(): void {
+		$params = $this->getRequest()->getParameters();
+		$query = $this->getHttpRequest()->getQuery();
+		foreach ($query as $key => $v) {
+			unset($params[$key]);
+		}
+		$canonical = $this->link('//:' . $this->getName() . ':' . $this->getAction(), $params);
+
 		$this->seo = new SeoData(
 			title: $this->config['seo_default_title'],
 			ogTitle: $this->config['seo_default_title_og'] ?: $this->config['seo_default_title'],
 			description: $this->config['seo_default_description'],
 			ogDescription: $this->config['seo_default_description_og'] ?: $this->config['seo_default_description'],
 			ogImage: $this->config['seo_default_og_image'],
-			canonical: $this->link('//this', []),
+			canonical: $canonical,
 		);
 		$this->template->seo = $this->seo;
 	}
@@ -254,6 +266,24 @@ class BasePresenter extends Nette\Application\UI\Presenter {
 			$favicons[] = ['path' => '/favicon.ico'];
 		}
 		return $favicons;
+	}
+
+	public function findMenuChildren(ActiveRow $item): array {
+		$children = [];
+		if (!empty($item->id)) {
+			$rows = $this->articleRepository->getChildrenByPath($item->path);
+		}
+
+		foreach ($rows ?? [] as $row) {
+			$base = (object) $item->toArray();
+			$base->render_type = 'link';
+			$base->parent_id = $base->id;
+			$base->presenter = 'Article';
+			$base->path = $row->path;
+			$base->label = $row->title;
+			$children[] = $base;
+		}
+		return $children;
 	}
 
 }

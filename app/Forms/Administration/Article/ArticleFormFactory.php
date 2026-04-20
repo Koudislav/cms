@@ -24,6 +24,7 @@ class ArticleFormFactory {
 		$form = BootstrapFormFactory::create('oneLine');
 		$this->addTypeField($form);
 		$this->addParentField($form, $parentSelectValues);
+		$this->addInheritField($form, $parentSelectValues);
 		$this->addTitleField($form);
 		$this->addTitleShowField($form);
 		$this->addSlugField($form);
@@ -39,6 +40,7 @@ class ArticleFormFactory {
 		$form = BootstrapFormFactory::create('oneLine');
 		$this->addTypeField($form);
 		$this->addParentField($form, $parentSelectValues);
+		$this->addInheritField($form, $parentSelectValues);
 		$this->addTitleField($form);
 		$this->addSlugField($form);
 		$this->addSeoFields($form);
@@ -60,6 +62,11 @@ class ArticleFormFactory {
 	public function addParentField(Form $form, array $parentSelectValues): void {
 		$form->addSelect('parent_id', 'Rodič:', $parentSelectValues)
 			->setPrompt('— žádný (Domů) —');
+	}
+
+	public function addInheritField(Form $form, array $inheritValues): void {
+		$form->addSelect('inherits_from_id', 'Dědit od:', $inheritValues)
+			->setPrompt('— žádný —');
 	}
 
 	public function addTitleField(Form $form): void {

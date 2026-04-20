@@ -95,7 +95,7 @@ final class ConfigurationPresenter extends \App\Presentation\Administration\Base
 						$item->key,
 						$this->configEnumLabel($label, $item),
 						$this->configEnumOptions($item)
-					)->setDefaultValue($item->value_string)
+					)->setDefaultValue(!empty($item->value_string) ? $item->value_string : null)
 						->setPrompt('— Vyberte —'),
 
 					default => $form->addText($item->key, $label)

@@ -12,6 +12,7 @@ use App\Repository\TemplateRepository;
 use App\Service\LayoutTemplatesService;
 use App\Service\ReCaptchaService;
 use App\Service\SpecialCodesParser;
+use Nette\Database\Table\ActiveRow;
 use Tracy\Debugger;
 
 final class ArticlePresenter extends \App\Presentation\BasePresenter {
@@ -127,6 +128,12 @@ final class ArticlePresenter extends \App\Presentation\BasePresenter {
 	}
 
 	protected function overWriteSeo($article): void {
+		if ($article->inherits_from_id) {
+			$previousArticles = $this->articleRepository->getInheritanceChain($article->inherits_from_id, true);
+		}
+		if ($previousArticles) {
+			$article = $this->buildInheritedArticle($article, $previousArticles);
+		}
 		if (!empty($article->og_image)){
 			if (str_starts_with($article->og_image, 'http://') || str_starts_with($article->og_image, 'https://')) {
 				$this->seo->ogImage = $article->og_image; // externí URL
@@ -157,7 +164,12 @@ final class ArticlePresenter extends \App\Presentation\BasePresenter {
 		if ($this->config['ui_breadcrumbs_home']) {
 			$breadcrumbs[$this->config['ui_breadcrumbs_home_text'] ?: 'Home'] = $this->link('//Home:default');
 		}
-		$breadcrumbs += $this->buildBreadcrumbs($path, $articleId);
+		$override = $this->getHttpRequest()->getQuery('over-bread');
+		if (!empty($override) && is_array($override)) {
+			$breadcrumbs += $this->buildOverrideBreadcrumbs($override, $articleId);
+		} else {
+			$breadcrumbs += $this->buildBreadcrumbs($path, $articleId);
+		}
 		if (!$this->config['ui_breadcrumbs_show_current']) {
 			array_pop($breadcrumbs);
 		}
@@ -195,6 +207,27 @@ final class ArticlePresenter extends \App\Presentation\BasePresenter {
 			}
 			return $breadcrumbs;
 		});
+	}
+
+	private function buildOverrideBreadcrumbs(array $path, int $articleId): array {
+		$breadcrumbs = [];
+		$currentPath = '';
+		foreach ($path as $segment) {
+			$currentPath .= ($currentPath ? '/' : '') . $segment;
+
+			$article = $this->articleRepository->getByPath($currentPath);
+			if (!$article) {
+				continue; // bezpečnost
+			}
+			$breadcrumbs[$article->title] = $this->link('//Article:default', [
+				'path' => $currentPath,
+			]);
+		}
+		$article = $this->articleRepository->getArticleById($articleId);
+		$breadcrumbs[$article->title] = $this->link('//Article:default', [
+			'path' => $article->path,
+		]);
+		return $breadcrumbs;
 	}
 
 	public function makeTemplateContent($article) {
@@ -238,6 +271,8 @@ final class ArticlePresenter extends \App\Presentation\BasePresenter {
 	public function addSystemVariables(array $data, $article): array {
 		$data[$this->templateRepository::SYSTEM_VARIABLE_PREFIX . 'Title'] = $article->title;
 		$data[$this->templateRepository::SYSTEM_VARIABLE_PREFIX . 'ArticleId'] = $article->id;
+		$data[$this->templateRepository::SYSTEM_VARIABLE_PREFIX . 'CreatedAt'] = $article->created_at->format('j. n. Y - H:i');
+		$data[$this->templateRepository::SYSTEM_VARIABLE_PREFIX . 'UpdatedAt'] = $article->updated_at ? $article->updated_at->format('j. n. Y - H:i') : 'nikdy';
 		if (!empty($article->parent_id)) {
 			$data[$this->templateRepository::SYSTEM_VARIABLE_PREFIX . 'ParentId'] = $article->parent_id;
 		}
@@ -250,11 +285,29 @@ final class ArticlePresenter extends \App\Presentation\BasePresenter {
 			'label' => null,
 			'required' => false,
 		];
-		$variables = ['Title', 'ArticleId', 'ParentId'];
+		$variables = ['Title', 'ArticleId', 'ParentId', 'CreatedAt', 'UpdatedAt'];
 		foreach ($variables as $var) {
 			$placeholders[$this->templateRepository::SYSTEM_VARIABLE_PREFIX . $var] = $variableSettings;
 		}
 		return $placeholders;
+	}
+
+	public function buildInheritedArticle(ActiveRow $article, array $previous): \stdClass {
+		$inheritedFields = ['seo_title', 'seo_description', 'og_image'];
+		$clonedFields = ['id', 'path', 'slug', 'title'];
+		$initialFields = array_merge($inheritedFields, $clonedFields);
+		$result = new \stdClass();
+		foreach ($initialFields as $cField) {
+			$result->$cField = $article->$cField;
+		}
+		foreach ($previous as $prev) {
+			foreach ($inheritedFields as $field) {
+				if (empty($result->$field) && !empty($prev->$field)) {
+					$result->$field = $prev->$field;
+				}
+			}
+		}
+		return $result;
 	}
 
 }

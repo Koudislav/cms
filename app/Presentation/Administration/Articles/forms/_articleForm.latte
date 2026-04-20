@@ -41,6 +41,9 @@
 				{label parent_id /}
 				{input parent_id}
 
+				{label inherits_from_id /}
+				{input inherits_from_id}
+
 				{label seo_title /}
 				{input seo_title}
 
@@ -73,7 +76,6 @@
 		<div class="card-body">
 			{foreach $form['templateData']->getComponents() as $component}
 				{if $component instanceof Nette\Forms\Container}
-				{dump $component}
 					<div class="card">
 						<div class="card-header">
 							<strong>Opakovaná skupina</strong>
