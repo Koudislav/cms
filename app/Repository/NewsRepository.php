@@ -12,6 +12,8 @@ class NewsRepository {
 
 	public const TABLE = 'news';
 
+	public const ALL_NEWS_SLUGS_CACHE_KEY = 'all_news_slugs';
+
 	public function __construct(
 		private Explorer $db,
 	) {}
@@ -121,5 +123,18 @@ class NewsRepository {
 			->limit($limit)
 			->fetchAll();
 	}
+
+	public function getAllSlugs(bool $onlyPublished = true): array {
+	$query = $this->db->table(self::TABLE);
+	if ($onlyPublished) {
+		$query->where('is_published', 1);
+	}
+	$rows = $query->select('slug')->fetchAll();
+	$slugs = [];
+	foreach ($rows as $row) {
+		$slugs[] = $row->slug;
+	}
+	return $slugs;
+}
 
 }

@@ -60,9 +60,11 @@ final class NewsPresenter extends \App\Presentation\Administration\BaseAdministr
 
 		if ($newsId) {
 			$this->newsRepository->update($newsId, $values, $this->getUser()->getId());
+			$this->cache->clean([NewsRepository::ALL_NEWS_SLUGS_CACHE_KEY]);
 			$this->flashMessage('Upraveno', 'success');
 		} else {
 			$id = $this->newsRepository->create($values, $this->getUser()->getId());
+			$this->cache->clean([NewsRepository::ALL_NEWS_SLUGS_CACHE_KEY]);
 			$this->flashMessage('Vytvořeno', 'success');
 			$this->redirect('this', ['newsId' => $id]);
 		}
@@ -72,6 +74,7 @@ final class NewsPresenter extends \App\Presentation\Administration\BaseAdministr
 
 	public function handleDelete(int $newsId): void {
 		$this->newsRepository->delete($newsId, $this->getUser()->getId());
+		$this->cache->clean([NewsRepository::ALL_NEWS_SLUGS_CACHE_KEY]);
 		$this->flashMessage('Smazáno', 'success');
 		$this->redirect('default');
 	}

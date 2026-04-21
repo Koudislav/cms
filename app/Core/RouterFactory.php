@@ -16,6 +16,8 @@ final class RouterFactory {
 	public static function createRouter(): RouteList {
 		$router = new RouteList;
 
+		$router->addRoute('novinky', 'News:list');
+
 		// ADMIN MODULE
 		$admin = new RouteList('Administration');
 		$admin->addRoute('administration/<presenter>/<action>[/<id>]', 'Dashboard:default');
@@ -32,6 +34,17 @@ final class RouterFactory {
 			$router->addRoute('<path ' . $pattern . '>', [
 				'presenter' => 'Article',
 				'action' => 'default'
+			]);
+		}
+
+		$newsSlugs = $cache->load(\App\Repository\NewsRepository::ALL_NEWS_SLUGS_CACHE_KEY);
+		if ($newsSlugs) {
+			$escaped = array_map(fn($s) => preg_quote($s, '#'), $newsSlugs);
+			$pattern = implode('|', $escaped);
+
+			$router->addRoute('novinky/<slug ' . $pattern . '>', [
+				'presenter' => 'News',
+				'action' => 'default',
 			]);
 		}
 

@@ -131,7 +131,7 @@ final class ArticlePresenter extends \App\Presentation\BasePresenter {
 		if ($article->inherits_from_id) {
 			$previousArticles = $this->articleRepository->getInheritanceChain($article->inherits_from_id, true);
 		}
-		if ($previousArticles) {
+		if (!empty($previousArticles)) {
 			$article = $this->buildInheritedArticle($article, $previousArticles);
 		}
 		if (!empty($article->og_image)){

@@ -18,12 +18,17 @@ class ArticleRepository {
 	private const BASE_RETURN_MESSAGES = ['success' => true, 'messages' => [['success' => 'Článek byl úspěšně vytvořen.']]];
 
 	public const FORBIDEN_SLUGS = [
+		'admin',
 		'administration',
 		'auth',
+		'authorize',
 		'gallery',
 		'news',
+		'list',
+		'lists',
 		'novinka',
 		'novinky',
+		'subscribe',
 		'unsubscribe',
 		'upload',
 		'verify-email',
@@ -52,6 +57,9 @@ class ArticleRepository {
 			$data = [];
 			$update = false;
 			$parentId = $values->parent_id ?? null;
+
+			$slugChanged = false;
+			$parentChanged = false;
 			if ($parentId === $articleId) {
 				throw new \Exception('Článek nemůže být sám sobě rodičem.');
 			}

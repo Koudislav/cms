@@ -75,19 +75,19 @@
 		});
 
 		const fadeEls = document.querySelectorAll(
-		'.fade-in-right, .fade-in-left, .fade-in-bottom, .fade-in-top'
+		'.fade-in-right, .fade-in-left, .fade-in-bottom, .fade-in-top, .fade-in'
 		);
 
 		const fadeinObserver = new IntersectionObserver((entries) => {
 		entries.forEach(entry => {
 			if (entry.isIntersecting) {
-				entry.target.classList.add('visible');
-				fadeinObserver.unobserve(entry.target); // just once
-				}
-			});
+			entry.target.classList.add('visible');
+			fadeinObserver.unobserve(entry.target); // spustí se jen jednou
+			}
+		});
 		}, {
-			rootMargin: "0px 0px -15% 0px", // 
-			threshold: 0
+		rootMargin: "0px 0px -15px 0px",
+		threshold: 0
 		});
 
 		fadeEls.forEach(el => fadeinObserver.observe(el));
@@ -110,11 +110,14 @@
 			};
 		{/if}
 
-		const currentYears =  document.querySelectorAll(".year");
-		const currentYear = new Date().getFullYear();
-		currentYears.forEach(el => {
-			el.textContent = currentYear;
-		});
+		function currentYear () {
+			const currentYears =  document.querySelectorAll(".current-year");
+			const currentYear = new Date().getFullYear();
+			currentYears.forEach(el => {
+				el.textContent = currentYear;
+			});
+		}
+		currentYear();
 
 	</script>
 	{/block}

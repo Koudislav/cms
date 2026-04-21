@@ -362,6 +362,14 @@ final class DefaultConfiguration {
 			'default' => false,
 		],
 
+		'ui_breadcrumbs_news' => [
+			'category' => 'ui',
+			'type' => 'bool',
+			'description' => 'Zobrazovat breadcrumbs v zobrazení novinek',
+			'sort_order' => 125,
+			'default' => false,
+		],
+
 		'ui_breadcrumbs_galleries' => [
 			'category' => 'ui',
 			'type' => 'bool',

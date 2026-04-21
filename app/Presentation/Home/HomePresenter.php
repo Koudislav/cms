@@ -29,6 +29,7 @@ final class HomePresenter extends \App\Presentation\BasePresenter {
 		foreach ($indexArticles as $article) {
 			$parser = new SpecialCodesParser($this);
 			$articleContent = $parser->parse($article->content);
+			$this->template->articleContainerFluid = $parser->articleContainer($articleContent);
 
 			$this->template->setFile(__DIR__ . '/../Article/default.latte');
 			$this->template->articleContent = $articleContent;
