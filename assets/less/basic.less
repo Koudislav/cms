@@ -287,16 +287,31 @@ body:not(.mce-content-body) {
 			&.visible {
 				opacity: 1;
 				transform: translate3d(0,0,0);
+				&.fade-top, &.fade-bottom {
+					min-height: unset;
+				}
 			}
-			&.fade-left   { --x: -40px; }
-			&.fade-right  { --x: 40px; }
-			&.fade-top    { --y: -40px; }
-			&.fade-bottom { --y: 40px; }
+			&.fade-left { --x: -40px; }
+			&.fade-right { --x: 40px; }
+			&.fade-top {
+				--y: -40px;
+				min-height: 41px;
+			}
+			&.fade-bottom {
+				--y: 40px;
+				min-height: 41px;
+			}
 			@media (min-width: 768px) {
-				&.fade-left   { --x: -100px; }
-				&.fade-right  { --x: 100px; }
-				&.fade-top    { --y: -100px; }
-				&.fade-bottom { --y: 100px; }
+				&.fade-left { --x: -100px; }
+				&.fade-right { --x: 100px; }
+				&.fade-top {
+					--y: -100px;
+					min-height: 101px;
+				}
+				&.fade-bottom {
+					--y: 100px;
+					min-height: 101px;
+				}
 			}
 		}
 	}

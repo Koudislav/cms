@@ -48,8 +48,16 @@ function initLightboxes() {
 		});
 	}
 }
+function currentYear () {
+	const currentYears =  document.querySelectorAll(".current-year");
+	const currentYear = new Date().getFullYear();
+	currentYears.forEach(el => {
+		el.textContent = currentYear;
+	});
+}
 
 document.addEventListener('DOMContentLoaded', () => {
 	initLightboxes();
+	currentYear();
 });
 </script>

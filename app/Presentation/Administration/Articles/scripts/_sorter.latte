@@ -1,0 +1,32 @@
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+	const childContainers = document.querySelectorAll('.sortable-children');
+	childContainers.forEach(container => {
+		new Sortable(container, {
+			animation: 150,
+			handle: '.child-handle',
+			draggable: '.sortable-child',
+			forceFallback: true,
+			fallbackTolerance: 5,
+
+			onEnd: () => {
+				const items = container.querySelectorAll(':scope > .sortable-child');
+				const order = [...items].map((item, index) => ({
+					id: item.dataset.id,
+					position: index,
+					parentId: container.dataset.parentId
+				}));
+
+				fetch(container.dataset.reorderUrl, {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+						'X-Requested-With': 'XMLHttpRequest'
+					},
+					body: JSON.stringify({ order })
+				});
+			}
+		});
+	});
+});
+</script>

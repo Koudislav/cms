@@ -47,7 +47,7 @@ final class Error4xxPresenter extends Nette\Application\UI\Presenter {
 			: __DIR__ . '/4xx.latte';
 
 		$cache = new Cache($this->storage);
-		$this->template->navbarMenu = $cache->load(\App\Presentation\BasePresenter::MENU_CACHE_KEY);
+		$this->template->navbarMenu = $cache->load(\App\Presentation\BasePresenter::MENU_CACHE_KEY . $this->config['main_menu']);
 
 		$this->template->config = $this->config;
 		$this->template->httpCode = $code;

@@ -48,7 +48,7 @@ final class MenusPresenter extends \App\Presentation\Administration\BaseAdminist
 		$parents = $this->menuRepository->getRootItemsForSelect($menuKey);
 		$articleList = $this->articleRepository->getArticleOptions(null, ['returnKey' => 'path']);
 
-		$form->addSelect('parent_id', 'Nadřazená položka:', $parents)
+		$parentId = $form->addSelect('parent_id', 'Nadřazená položka:', $parents)
 			->setPrompt('— hlavní položka —');
 
 		$form->addText('label', 'Popisek položky:')
@@ -87,12 +87,12 @@ final class MenusPresenter extends \App\Presentation\Administration\BaseAdminist
 				'galleryId' => $menuItem['processed']['galleryId'] ?? null,
 			]);
 			try {
-				$form['linkedArticleSlug']->setDefaultValue($menuItem['processed']['linkedArticleSlug']);
+				$linkedArticleSlug->setDefaultValue($menuItem['processed']['linkedArticleSlug']);
 			} catch (\Exception $e) {
 				$form->addError('Chyba při načítání položky menu: ' . $e->getMessage() . PHP_EOL . 'Pravděpodobně došlo k odstranění cíle z databáze. Opravte nebo smažte tuto položku menu!');
 			}
 			try {
-				$form['parent_id']->setDefaultValue($menuItem['db']->parent_id);
+				$parentId->setDefaultValue($menuItem['db']->parent_id);
 			} catch (\Exception $e) {
 				$form->addError('Chyba při načítání položky menu: ' . $e->getMessage() . PHP_EOL . 'Položka byla přidána pod rodiče, který již neexistuje, nebo se změnilo jeho nastavení a tato položka již není podřazenou položkou. Opravte nebo smažte tuto položku menu!');
 			}

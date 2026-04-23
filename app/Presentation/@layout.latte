@@ -86,8 +86,8 @@
 			}
 		});
 		}, {
-		rootMargin: "0px 0px -15px 0px",
-		threshold: 0
+			rootMargin: "0px 0px -15px 0px",
+			threshold: 0
 		});
 
 		fadeEls.forEach(el => fadeinObserver.observe(el));
@@ -109,15 +109,6 @@
 				});
 			};
 		{/if}
-
-		function currentYear () {
-			const currentYears =  document.querySelectorAll(".current-year");
-			const currentYear = new Date().getFullYear();
-			currentYears.forEach(el => {
-				el.textContent = currentYear;
-			});
-		}
-		currentYear();
 
 	</script>
 	{/block}

@@ -89,7 +89,7 @@ class BasePresenter extends Nette\Application\UI\Presenter {
 	}
 
 	private function processNavbarMenu(): array {
-		$menu = $this->cache->load(self::MENU_CACHE_KEY, function (&$dependencies) {
+		$menu = $this->cache->load(self::MENU_CACHE_KEY . $this->config['main_menu'], function (&$dependencies) {
 			$dependencies[Cache::Tags] = [self::MENU_CACHE_KEY];
 
 			$menu = [];
@@ -193,7 +193,10 @@ class BasePresenter extends Nette\Application\UI\Presenter {
 		foreach ($query as $key => $v) {
 			unset($params[$key]);
 		}
-		$canonical = $this->link('//:' . $this->getName() . ':' . $this->getAction(), $params);
+		$canonical = @$this->link('//:' . $this->getName() . ':' . $this->getAction(), $params);
+		if (!str_starts_with($canonical, 'http')) {
+			$canonical = $this->link('//this');
+		}
 
 		$this->seo = new SeoData(
 			title: $this->config['seo_default_title'],

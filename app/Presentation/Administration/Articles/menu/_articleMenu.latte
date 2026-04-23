@@ -1,17 +1,24 @@
+{var $isChildrenContainer = $level > 0}
 {foreach $items as $node}
-	<div class="article-node">
+	<div n:class="$isChildrenContainer ? sortable-child, article-node" n:attr="data-id: $node['article']->id">
 		<a href="{$node['link']}"
-			n:class="$currentArticleId === $node['article']->id ? active, 'list-group-item list-group-item-action py-1 pe-1'"
+			n:class="$currentArticleId === $node['article']->id ? active, 'list-group-item list-group-item-action py-1 pe-1 d-flex justify-content-between'"
 			style="padding-left: {if $level == 0}0.5{else}{$level}{/if}rem !important;">
-			<i n:class="bi, $node['article']->is_published ? 'bi-eye text-success' : 'bi-eye-slash text-danger'"></i>
-			<span title="{$node['article']->slug}">
-				{if $node['article']->type === 'index'}<strong>Úvodní stránka</strong> {/if}
-				{$node['article']->title}
-			</span>
+			<div>
+				<i n:class="bi, $node['article']->is_published ? 'bi-eye text-success' : 'bi-eye-slash text-danger'"></i>
+				<span title="{$node['article']->slug}">
+					{if $node['article']->type === 'index'}<strong>Úvodní stránka</strong> {/if}
+					{$node['article']->title}
+				</span>
+			</div>
+			{if $isChildrenContainer}
+				<div class="child-handle ms-2">
+					{include '../../Components/buttons/sorter.latte'}
+				</div>
+			{/if}
 		</a>
-
 		{if $node['children']}
-			<div class="article-children">
+			<div class="article-children sortable-children" data-parent-id="{$node['article']->id}" data-reorder-url="{link reorderArticles!}">
 				{include '_articleMenu.latte', items => $node['children'], level => $level + 1}
 			</div>
 		{/if}

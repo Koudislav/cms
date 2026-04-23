@@ -97,9 +97,10 @@ final class ArticlesPresenter extends \App\Presentation\Administration\BaseAdmin
 		$form = $this->articleFormFactory->createLayoutArticleForm($this->articleRepository->getArticleOptions($articleId), $placeholders, $templateDefaults ?? null);
 
 		if (!empty($article)) {
-			// $templateDefaults = $this->templateRepository->resolveDataDefaults($placeholders, $article->template_data_json ?? null);
 			$form->setDefaults($article);
-			$form['templateData']->setDefaults($templateDefaults);
+			/** @var \Nette\Forms\Container $templateData */
+			$templateData = $form['templateData'];
+			$templateData->setDefaults($templateDefaults);
 		}
 		$form->onSuccess[] = function (Form $form, $values) use ($template, $articleId) {
 			$dataJson = $this->articleRepository->createTemplateJson($values->templateData);
@@ -257,6 +258,19 @@ final class ArticlesPresenter extends \App\Presentation\Administration\BaseAdmin
 	private function clearSlugCache(): void {
 		$this->cache->remove($this->articleRepository::ALL_ARTICLE_PATHS_CACHE_KEY);
 		$this->cache->clean([$this->cache::Tags => ['articleAssets', 'articleBreadcrumbs']]);
+	}
+
+	public function handleReorderArticles(): void {
+		if (!$this->isAjax()) {
+			$this->error('Invalid request');
+		}
+		$data = json_decode($this->getHttpRequest()->getRawBody(), true);
+		if (!isset($data['order']) || !is_array($data['order'])) {
+			$this->sendJson(['status' => 'error']);
+			return;
+		}
+		$this->articleRepository->updatePositions($data['order']);
+		$this->sendJson(['status' => 'ok']);
 	}
 
 }

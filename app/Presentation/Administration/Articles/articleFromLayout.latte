@@ -13,6 +13,7 @@
 
 {block scripts}
 {include parent}
+{include 'scripts/_sorter.latte'}
 <script>
 	document.addEventListener('click', function (e) {
 	if (!e.target.classList.contains('add-repeater-row')) return;
@@ -22,7 +23,7 @@
 	let index = parseInt(btn.dataset.index, 10);
 	const type = btn.dataset.type;
 
-	// 🔎 najdi všechny existující prvky
+	// najdi všechny existující prvky
 	const inputs = document.querySelectorAll(`[data-repeater="${ repeaterKey }"]`);
 
 	if (inputs.length === 0) return;
@@ -30,7 +31,7 @@
 	const lastInput = inputs[inputs.length - 1];
 	const wrapper = lastInput.closest('.mb-2');
 
-	// 🧱 vytvoř nový block
+	// vytvoř nový block
 	const newWrapper = document.createElement('div');
 	newWrapper.classList.add('mb-2');
 
@@ -72,16 +73,16 @@
 		${ inputHtml }
 	`;
 
-	// 👉 vlož ZA poslední item
+	// vlož ZA poslední item
 	wrapper.after(newWrapper);
 
-	// 👉 posuň button taky dolů
+	// posuň button taky dolů
 	newWrapper.after(btn.parentElement);
 
-	// 👉 update index
+	// update index
 	btn.dataset.index = index + 1;
 
-	// 🔥 init TinyMCE jen pro nový field
+	// init TinyMCE jen pro nový field
 	if (type === 'html') {
 		window.initTinyMCE(newWrapper.querySelector('textarea'));
 	}

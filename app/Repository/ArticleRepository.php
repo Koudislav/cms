@@ -130,6 +130,9 @@ class ArticleRepository {
 			'created_at' => new \DateTime(),
 			'created_by' => $userId,
 		];
+		if ($parentId !== null) {
+			$data['sort_order'] = ($this->db->table(self::ARTICLES_TABLE)->where('parent_id', $parentId)->max('sort_order') ?? 0) + 1;
+		}
 
 		$newArticle = $this->db->table(self::ARTICLES_TABLE)->insert($data);
 		$return['articleId'] = $newArticle->id;
@@ -335,10 +338,8 @@ class ArticleRepository {
 	public function getArticleTree(?int $parentId = null): array {
 		$rows = $this->db->table(self::ARTICLES_TABLE)
 			->where('deleted_at', null)
-			->order('path ASC')
+			->order('parent_id ASC, sort_order ASC')
 			->fetchAll();
-
-		$tree = [];
 
 		// sestavíme pole podle parent_id
 		$byParent = [];
@@ -382,6 +383,7 @@ class ArticleRepository {
 			->where('deleted_at', null)
 			->where('parent_id', $articleId)
 			->where('is_published', 1)
+			->order('sort_order ASC, created_at DESC')
 			->fetchAll();
 	}
 
@@ -397,6 +399,7 @@ class ArticleRepository {
 				->where('deleted_at', null)
 				->where('parent_id', $id)
 				->where('is_published', 1)
+				->order('sort_order ASC, created_at DESC')
 				->fetchAll();
 
 			foreach ($rows as $row) {
@@ -417,7 +420,7 @@ class ArticleRepository {
 		}
 
 		usort($grouped, function ($a, $b) {
-			return $b['created_at'] <=> $a['created_at'];
+			return $a['sort_order'] <=> $b['sort_order'];
 		});
 
 		return array_values($grouped);
@@ -425,11 +428,14 @@ class ArticleRepository {
 
 	public function getInheritanceChain(?int $articleId, bool $getRows = false): array {
 		$chain = [];
+
 		while ($articleId) {
-			$article = $this->getArticleById($articleId);
-			if (!$article) {
-				break;
+			if (($getRows && isset($chain[$articleId])) || (!$getRows && in_array($articleId, $chain, true))) {
+				throw new \Exception('Cyklická dědičnost detekována u článku ID ' . $articleId);
 			}
+			$article = $this->getArticleById($articleId);
+			if (!$article) break;
+
 			if ($getRows) {
 				$chain[$articleId] = $article;
 			} else {
@@ -440,6 +446,16 @@ class ArticleRepository {
 		return $chain;
 	}
 
-
+	public function updatePositions(array $order): void {
+		$this->db->beginTransaction();
+		foreach ($order as $row) {
+			$this->db->table(self::ARTICLES_TABLE)
+				->where('id', (int) $row['id'])
+				->update([
+					'sort_order' => (int) $row['position'],
+				]);
+		}
+		$this->db->commit();
+	}
 
 }
