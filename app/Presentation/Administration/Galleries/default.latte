@@ -30,9 +30,12 @@
 			Nová galerie
 		{else}
 			Úprava galerie {$galleries[$currentGalleryId]->title}
-			<div>
+			<div class="d-flex justify-content-between align-items-center">
 				<a n:href="galleryImages, galleryId: $galleries[$currentGalleryId]->id" class="btn btn-sm btn-success mt-2" target="_blank">
-					<i class="bi bi-images"></i> Správa obrázků galerie
+					<i class="bi bi-images"></i> Správa obrázků galerie <i class="bi bi-box-arrow-up-right"></i>
+				</a>
+				<a n:href="shortCodes, galleryId: $galleries[$currentGalleryId]->id" class="btn btn-sm btn-warning mt-2" target="_blank">
+					ShortCodes <i class="bi bi-box-arrow-up-right"></i>
 				</a>
 			</div>
 		{/if}

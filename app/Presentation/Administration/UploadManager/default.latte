@@ -52,26 +52,38 @@
 {/if}
 
 {* Breadcrumb navigace *}
-<div style="margin-bottom: 20px;">
-	<strong>Cesta:</strong>
-	{var $crumbs = explode('/', trim($relativePath, '/'))}
-	<a n:href="this, folder: null">Upload</a>
-	{var $pathAcc = ''}
-	{foreach $crumbs as $key => $crumb}
-		{continueIf $key === 0}
-		{php $pathAcc .= '/' . $crumb}
-		&nbsp;/&nbsp;<a n:href="this, folder: $pathAcc">{$crumb}</a>
-	{/foreach}
-</div>
+<nav aria-label="breadcrumb">
+	<ol class="breadcrumb">
+		{var $crumbs = explode('/', trim($relativePath, '/'))}
+		<li class="breadcrumb-item"><a n:href="this, folder: null">Upload</a></li>
+		{var $pathAcc = ''}
+		{foreach $crumbs as $key => $crumb}
+			{continueIf $key === 0}
+			{php $pathAcc .= '/' . $crumb}
+			<li class="breadcrumb-item"><a n:href="this, folder: $pathAcc">{$crumb}</a></li>
+		{/foreach}
+	</ol>
+</nav>
 
-{* Vytvořit novou složku *}
-<div>
-	{control createFolderForm}
-</div>
-
-{* Upload souboru *}
-<div>
-	{control uploadForm}
+<div class="row g-3 mb-3">
+	<!-- CREATE FOLDER -->
+	<div class="col-12 col-lg-6">
+		<div class="card shadow-sm h-100">
+			<div class="card-body">
+				<h6 class="mb-2 text-muted">Vytvořit složku</h6>
+				{control createFolderForm}
+			</div>
+		</div>
+	</div>
+	<!-- UPLOAD FILE -->
+	<div class="col-12 col-lg-6">
+		<div class="card shadow-sm h-100">
+			<div class="card-body">
+				<h6 class="mb-2 text-muted">Nahrát soubor</h6>
+				{control uploadForm}
+			</div>
+		</div>
+	</div>
 </div>
 
 <div style="display: flex; flex-wrap: wrap; gap: 15px;">

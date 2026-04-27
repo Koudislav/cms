@@ -85,7 +85,7 @@ final class UploadManagerPresenter extends \App\Presentation\Administration\Base
 	}
 
 	public function createComponentCreateFolderForm(): Form {
-		$form = BootstrapFormFactory::create('inLine');
+		$form = BootstrapFormFactory::create('oneLine');
 		$form->addHidden('folder')
 			->setDefaultValue($this->getParameter('folder') ?? '');
 		$form->addText('folderName', 'Název nové složky:')
@@ -98,7 +98,7 @@ final class UploadManagerPresenter extends \App\Presentation\Administration\Base
 	}
 
 	public function createComponentUploadForm(): Form {
-		$form = BootstrapFormFactory::create('inLine');
+		$form = BootstrapFormFactory::create('oneLine');
 		$form->addHidden('folder')
 			->setDefaultValue($this->getParameter('folder') ?? '');
 		$form->addGroup();

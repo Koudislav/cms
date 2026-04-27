@@ -1,6 +1,4 @@
 Novinky:
-	- breadcrumbs
-	- Dodelat router, vypis vsech, menu.
 	- Dodelat nacitani ve vlastni sablone.
 articles - obnoveni historie / historie overit funkcnost az k aktualnimu stavu
 nseting clanku - generovani menu pro deti, ?upravit seo structured data?
@@ -14,6 +12,25 @@ sluzba consistency checker - menu check, index check, size check...
 
 /vice urovni menu, napovi mi chat - https://chatgpt.com/c/69c240a8-5480-8325-8116-05a17d73b195
 novinky renderer shortcode - na vlastni sablonu, dovymyslet flow
+
+javascripty - presunout presunutelne do slozky a udelat generator asi basePresenter: (nebo rovnou minifier) - inspirace https://chatgpt.com/c/69e9f73e-fe68-8394-ab34-74a927dcadaa
+	private function buildJsIfNeeded(): void {
+		$outputFile = __DIR__ . '/../../www/assets/script.js';
+		$maxAge = 60 * 60 * 6; // 6 hodin
+
+		if (!file_exists($outputFile) || filemtime($outputFile) < time() - $maxAge) {
+			$files = glob(__DIR__ . '/../../app/assets/js/*.js');
+			sort($files);
+
+			$output = '';
+
+			foreach ($files as $file) {
+				$output .= file_get_contents($file) . "\n";
+			}
+
+			file_put_contents($outputFile, $output);
+		}
+	}
 
 
 

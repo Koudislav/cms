@@ -1,7 +1,12 @@
 do nove verze:
-	- novy shortcode [[@menu::article|id|order|]]
+	- novy shortcode [[@menu::article|id]]
+	- galerie - prehled shortcode
 	- systemove variables do sablon - zatim {{systemArticleVariableTitle}} , ArticleId, ParentId, CreatedAt, UpdatedAt
 	- generovani dropdownu menu na zaklade clankku - vsechny jeho viditelne deti.
+	- razeni clanku pro vypis menu - podle pozice
+	Novinky:
+		- breadcrumbs
+		- Dodelat router, vypis vsech, menu.
 
 	- bugfix:
 		- oprava canonical linku - canonical link vzdy bez get parametru, v predchozich verzich se canonical o get parametry nestripoval.

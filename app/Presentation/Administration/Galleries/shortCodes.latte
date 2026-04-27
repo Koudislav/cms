@@ -1,0 +1,21 @@
+{block content}
+	<h1 class="h3 position-relative" n:block=title>
+		ShortCodes pro galerii
+		<span class="new-badge bg-warning text-danger"></span>
+	</h1>
+	<p>Novinka - můžete vkládat galerie do obsahu pomocí shortcodů. Stačí zkopírovat kód a vložit ho do textu, kde chcete galerii zobrazit.</p>
+	{* TODO Form pro volitelne parametry *}
+	<hr>
+	{snippet shortCodes}
+	{foreach $shortCodes as $shortCode}
+		<div class="short-code">
+			<div class="short-code-code">{$shortCode['preview']|noescape}</div>
+			<div class="short-code-description mt-2">
+				<h6>Kód:</h6>
+				<code class="bg-body-tertiary p-2 rounded p-2 d-block">{$shortCode['code']}</code>
+			</div>
+		</div>
+		<hr>
+	{/foreach}
+	{/snippet}
+{/block}

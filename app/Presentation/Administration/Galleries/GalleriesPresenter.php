@@ -8,6 +8,7 @@ use App\Forms\BootstrapFormFactory;
 use App\Repository\GalleryRepository;
 use App\Service\DiskQuotaService;
 use App\Service\ImageService;
+use App\Service\SpecialCodesParser;
 use Nette\Forms\Form;
 
 final class GalleriesPresenter extends \App\Presentation\Administration\BaseAdministrationPresenter {
@@ -264,6 +265,27 @@ final class GalleriesPresenter extends \App\Presentation\Administration\BaseAdmi
 		}
 		$this->galleryRepository->updateImagePositions($data['order']);
 		$this->sendJson(['status' => 'ok']);
+	}
+
+	public function renderShortCodes(int $galleryId): void {
+		$parser = new SpecialCodesParser($this);
+		$shortCodes = $this->buildSchortCodes($galleryId);
+		foreach ($shortCodes as &$code) {
+			$code['preview'] = $parser->parse($code['code']);
+		}
+		$this->template->shortCodes = $shortCodes;
+	}
+
+	public function buildSchortCodes(int $galleryId): array {
+		$shortCodes = [
+			['code' => "[[@gallery::preview|id={$galleryId}",],
+			['code' => "[[@gallery::trapezoid|id={$galleryId}"],
+			['code' => "[[@gallery::trapezoid|id={$galleryId}|toLeft=true"],
+		];
+		foreach ($shortCodes as &$code) {
+			$code['code'] .= ']]';
+		}
+		return $shortCodes;
 	}
 
 }
